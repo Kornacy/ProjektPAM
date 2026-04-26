@@ -47,7 +47,7 @@ app.*.map.json
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
-
+.dataconnect/
 # Firebase - stare pliki konfiguracyjne 
 google-services.json
 GoogleService-Info.plist

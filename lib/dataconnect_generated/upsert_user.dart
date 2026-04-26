@@ -1,10 +1,20 @@
-part of 'generated.dart';
+part of 'default_connector.dart';
 
 class UpsertUserVariablesBuilder {
-  String username;
+  String email;
+  Optional<String> _username = Optional.optional(nativeFromJson, nativeToJson);
+  Optional<String> _photoUrl = Optional.optional(nativeFromJson, nativeToJson);
 
-  final FirebaseDataConnect _dataConnect;
-  UpsertUserVariablesBuilder(this._dataConnect, {required  this.username,});
+  final FirebaseDataConnect _dataConnect;  UpsertUserVariablesBuilder username(String? t) {
+   _username.value = t;
+   return this;
+  }
+  UpsertUserVariablesBuilder photoUrl(String? t) {
+   _photoUrl.value = t;
+   return this;
+  }
+
+  UpsertUserVariablesBuilder(this._dataConnect, {required  this.email,});
   Deserializer<UpsertUserData> dataDeserializer = (dynamic json)  => UpsertUserData.fromJson(jsonDecode(json));
   Serializer<UpsertUserVariables> varsSerializer = (UpsertUserVariables vars) => jsonEncode(vars.toJson());
   Future<OperationResult<UpsertUserData, UpsertUserVariables>> execute() {
@@ -12,7 +22,7 @@ class UpsertUserVariablesBuilder {
   }
 
   MutationRef<UpsertUserData, UpsertUserVariables> ref() {
-    UpsertUserVariables vars= UpsertUserVariables(username: username,);
+    UpsertUserVariables vars= UpsertUserVariables(email: email,username: _username,photoUrl: _photoUrl,);
     return _dataConnect.mutation("UpsertUser", dataDeserializer, varsSerializer, vars);
   }
 }
@@ -87,11 +97,24 @@ class UpsertUserData {
 
 @immutable
 class UpsertUserVariables {
-  final String username;
+  final String email;
+  late final Optional<String>username;
+  late final Optional<String>photoUrl;
   @Deprecated('fromJson is deprecated for Variable classes as they are no longer required for deserialization.')
   UpsertUserVariables.fromJson(Map<String, dynamic> json):
   
-  username = nativeFromJson<String>(json['username']);
+  email = nativeFromJson<String>(json['email']) {
+  
+  
+  
+    username = Optional.optional(nativeFromJson, nativeToJson);
+    username.value = json['username'] == null ? null : nativeFromJson<String>(json['username']);
+  
+  
+    photoUrl = Optional.optional(nativeFromJson, nativeToJson);
+    photoUrl.value = json['photoUrl'] == null ? null : nativeFromJson<String>(json['photoUrl']);
+  
+  }
   @override
   bool operator ==(Object other) {
     if(identical(this, other)) {
@@ -102,21 +125,31 @@ class UpsertUserVariables {
     }
 
     final UpsertUserVariables otherTyped = other as UpsertUserVariables;
-    return username == otherTyped.username;
+    return email == otherTyped.email && 
+    username == otherTyped.username && 
+    photoUrl == otherTyped.photoUrl;
     
   }
   @override
-  int get hashCode => username.hashCode;
+  int get hashCode => Object.hashAll([email.hashCode, username.hashCode, photoUrl.hashCode]);
   
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
-    json['username'] = nativeToJson<String>(username);
+    json['email'] = nativeToJson<String>(email);
+    if(username.state == OptionalState.set) {
+      json['username'] = username.toJson();
+    }
+    if(photoUrl.state == OptionalState.set) {
+      json['photoUrl'] = photoUrl.toJson();
+    }
     return json;
   }
 
   UpsertUserVariables({
+    required this.email,
     required this.username,
+    required this.photoUrl,
   });
 }
 

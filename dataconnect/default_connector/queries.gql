@@ -1,0 +1,32 @@
+# Pobieranie wszystkich zgłoszeń na mapę
+query GetReports @auth(level: PUBLIC) {
+  reports {
+    id
+    latitude
+    longitude
+    description
+    status
+    category {
+      name
+      iconName
+      pinColor
+    }
+    # Pobieramy od razu listę zdjęć dla każdego zgłoszenia!
+    reportPhotos_on_report {
+      imageUrl
+    }
+    # Liczymy głosy poparcia
+    upvotes_on_report {
+      id
+    }
+  }
+}
+
+# Pobieranie listy kategorii
+query GetCategories @auth(level: PUBLIC) {
+  categories {
+    id
+    name
+    iconName
+  }
+}

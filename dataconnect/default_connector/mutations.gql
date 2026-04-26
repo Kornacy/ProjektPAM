@@ -1,0 +1,32 @@
+mutation UpsertUser($email: String!, $username: String, $photoUrl: String) @auth(level: USER) {
+  user_upsert(data: {
+    id_expr: "auth.uid"
+    email: $email,
+    username: $username,
+    photoUrl: $photoUrl
+  })
+}
+
+mutation CreateReport($category: String!, $desc: String, $lat: Float!, $lng: Float!)@auth(level: USER){
+    report_insert(data: {
+        userId_expr: "auth.uid"
+        categoryId: $category,
+        description: $desc,
+        latitude: $lat,
+        longitude: $lng,
+    })
+}
+
+mutation AddPhoto($reportId: UUID!, $url: String!) @auth(level: USER) {
+  reportPhoto_insert(data: {
+    reportId: $reportId,
+    imageUrl: $url
+  })
+}
+
+mutation UpvoteReport($reportId: UUID!) @auth(level: USER) {
+  upvote_insert(data: {
+    userId_expr: "auth.uid"
+    reportId: $reportId
+  })
+}

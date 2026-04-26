@@ -1,26 +1,36 @@
-extend type Movie {
+extend type Comment {
   """
-  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  ✨ Implicit foreign key field based on `Comment`.`report`. It must match the value of `Report`.`id`. See `@ref` for how to customize it.
   """
-  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Movie", purpose: IMPLICIT_KEY_FIELD)
+  reportId: UUID! @fdc_generated(from: "Comment.report", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Comment`.`user`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  userId: String! @fdc_generated(from: "Comment.user", purpose: IMPLICIT_REF_FIELD)
 }
-extend type MovieMetadata {
+extend type Report {
   """
-  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  ✨ Implicit foreign key field based on `Report`.`category`. It must match the value of `Category`.`id`. See `@ref` for how to customize it.
   """
-  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "MovieMetadata", purpose: IMPLICIT_KEY_FIELD)
+  categoryId: String! @fdc_generated(from: "Report.category", purpose: IMPLICIT_REF_FIELD)
   """
-  ✨ Implicit foreign key field based on `MovieMetadata`.`movie`. It must match the value of `Movie`.`id`. See `@ref` for how to customize it.
+  ✨ Implicit foreign key field based on `Report`.`user`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
   """
-  movieId: UUID! @fdc_generated(from: "MovieMetadata.movie", purpose: IMPLICIT_REF_FIELD)
+  userId: String! @fdc_generated(from: "Report.user", purpose: IMPLICIT_REF_FIELD)
 }
-extend type Review {
+extend type ReportPhoto {
   """
-  ✨ Implicit foreign key field based on `Review`.`movie`. It must match the value of `Movie`.`id`. See `@ref` for how to customize it.
+  ✨ Implicit foreign key field based on `ReportPhoto`.`report`. It must match the value of `Report`.`id`. See `@ref` for how to customize it.
   """
-  movieId: UUID! @fdc_generated(from: "Review.movie", purpose: IMPLICIT_REF_FIELD)
+  reportId: UUID! @fdc_generated(from: "ReportPhoto.report", purpose: IMPLICIT_REF_FIELD)
+}
+extend type Upvote {
   """
-  ✨ Implicit foreign key field based on `Review`.`user`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  ✨ Implicit foreign key field based on `Upvote`.`report`. It must match the value of `Report`.`id`. See `@ref` for how to customize it.
   """
-  userId: String! @fdc_generated(from: "Review.user", purpose: IMPLICIT_REF_FIELD)
+  reportId: UUID! @fdc_generated(from: "Upvote.report", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Upvote`.`user`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  userId: String! @fdc_generated(from: "Upvote.user", purpose: IMPLICIT_REF_FIELD)
 }

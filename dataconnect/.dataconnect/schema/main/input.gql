@@ -1,21 +1,33 @@
 """
-✨ `Movie_KeyOutput` returns the primary key fields of table type `Movie`.
+✨ `Category_KeyOutput` returns the primary key fields of table type `Category`.
 
-It has the same format as `Movie_Key`, but is only used as mutation return value.
+It has the same format as `Category_Key`, but is only used as mutation return value.
 """
-scalar Movie_KeyOutput
+scalar Category_KeyOutput
 """
-✨ `MovieMetadata_KeyOutput` returns the primary key fields of table type `MovieMetadata`.
+✨ `Comment_KeyOutput` returns the primary key fields of table type `Comment`.
 
-It has the same format as `MovieMetadata_Key`, but is only used as mutation return value.
+It has the same format as `Comment_Key`, but is only used as mutation return value.
 """
-scalar MovieMetadata_KeyOutput
+scalar Comment_KeyOutput
 """
-✨ `Review_KeyOutput` returns the primary key fields of table type `Review`.
+✨ `Report_KeyOutput` returns the primary key fields of table type `Report`.
 
-It has the same format as `Review_Key`, but is only used as mutation return value.
+It has the same format as `Report_Key`, but is only used as mutation return value.
 """
-scalar Review_KeyOutput
+scalar Report_KeyOutput
+"""
+✨ `ReportPhoto_KeyOutput` returns the primary key fields of table type `ReportPhoto`.
+
+It has the same format as `ReportPhoto_Key`, but is only used as mutation return value.
+"""
+scalar ReportPhoto_KeyOutput
+"""
+✨ `Upvote_KeyOutput` returns the primary key fields of table type `Upvote`.
+
+It has the same format as `Upvote_Key`, but is only used as mutation return value.
+"""
+scalar Upvote_KeyOutput
 """
 ✨ `User_KeyOutput` returns the primary key fields of table type `User`.
 
@@ -23,108 +35,100 @@ It has the same format as `User_Key`, but is only used as mutation return value.
 """
 scalar User_KeyOutput
 """
-✨ Generated data input type for table 'Movie'. It includes all necessary fields for creating or upserting rows into table.
+✨ Generated data input type for table 'Category'. It includes all necessary fields for creating or upserting rows into table.
 """
-input Movie_Data {
+input Category_Data {
   """
-  ✨ Generated from Field `Movie`.`id` of type `UUID!`
+  ✨ Generated from Field `Category`.`id` of type `String!`
   """
-  id: UUID
+  id: String
   """
-  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Movie`.`id` of type `UUID!`)
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Category`.`id` of type `String!`)
   """
-  id_expr: UUID_Expr @fdc_forbiddenInVariables
+  id_expr: String_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Movie`.`genre` of type `String`
+  ✨ Generated from Field `Category`.`iconName` of type `String!`
   """
-  genre: String
+  iconName: String
   """
-  ✨ `_expr` server value variant of `genre` (✨ Generated from Field `Movie`.`genre` of type `String`)
+  ✨ `_expr` server value variant of `iconName` (✨ Generated from Field `Category`.`iconName` of type `String!`)
   """
-  genre_expr: String_Expr @fdc_forbiddenInVariables
+  iconName_expr: String_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Movie`.`imageUrl` of type `String!`
+  ✨ Generated from Field `Category`.`name` of type `String!`
   """
-  imageUrl: String
+  name: String
   """
-  ✨ `_expr` server value variant of `imageUrl` (✨ Generated from Field `Movie`.`imageUrl` of type `String!`)
+  ✨ `_expr` server value variant of `name` (✨ Generated from Field `Category`.`name` of type `String!`)
   """
-  imageUrl_expr: String_Expr @fdc_forbiddenInVariables
+  name_expr: String_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Movie`.`title` of type `String!`
+  ✨ Generated from Field `Category`.`pinColor` of type `String!`
   """
-  title: String
+  pinColor: String
   """
-  ✨ `_expr` server value variant of `title` (✨ Generated from Field `Movie`.`title` of type `String!`)
+  ✨ `_expr` server value variant of `pinColor` (✨ Generated from Field `Category`.`pinColor` of type `String!`)
   """
-  title_expr: String_Expr @fdc_forbiddenInVariables
+  pinColor_expr: String_Expr @fdc_forbiddenInVariables
 }
 """
-✨ Generated filter input type for table 'Movie'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+✨ Generated filter input type for table 'Category'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
 """
-input Movie_Filter {
+input Category_Filter {
   """
   Apply multiple filter conditions using `AND` logic.
   """
-  _and: [Movie_Filter!]
+  _and: [Category_Filter!]
   """
   Negate the result of the provided filter condition.
   """
-  _not: Movie_Filter
+  _not: Category_Filter
   """
   Apply multiple filter conditions using `OR` logic.
   """
-  _or: [Movie_Filter!]
+  _or: [Category_Filter!]
   """
-  ✨ Generated from Field `Movie`.`id` of type `UUID!`
+  ✨ Generated from Field `Category`.`id` of type `String!`
   """
-  id: UUID_Filter
+  id: String_Filter
   """
-  ✨ Generated from Field `Movie`.`genre` of type `String`
+  ✨ Generated from Field `Category`.`iconName` of type `String!`
   """
-  genre: String_Filter
+  iconName: String_Filter
   """
-  ✨ Generated from Field `Movie`.`imageUrl` of type `String!`
+  ✨ Generated from Field `Category`.`name` of type `String!`
   """
-  imageUrl: String_Filter
+  name: String_Filter
   """
-  ✨ Generated from Field `Movie`.`title` of type `String!`
+  ✨ Generated from Field `Category`.`pinColor` of type `String!`
   """
-  title: String_Filter
+  pinColor: String_Filter
   """
-  ✨ Generated from Field `Movie`.`reviews_on_movie` of type `[Review!]!`
+  ✨ Generated from Field `Category`.`reports_on_category` of type `[Report!]!`
   """
-  reviews_on_movie: Review_ListFilter
-  """
-  ✨ Generated from Field `Movie`.`movieMetadata_on_movie` of type `MovieMetadata`
-  """
-  movieMetadata_on_movie: MovieMetadata_Filter
-  """
-  ✨ Generated from Field `Movie`.`users_via_Review` of type `[User!]!`
-  """
-  users_via_Review: User_ListFilter
+  reports_on_category: Report_ListFilter
 }
 """
-✨ Generated first-row input type for table 'Movie'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+✨ Generated first-row input type for table 'Category'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
 """
-input Movie_FirstRow {
+input Category_FirstRow {
   """
   Order the result by the specified fields.
   """
-  orderBy: [Movie_Order!]
+  orderBy: [Category_Order!]
   """
   Filters rows based on the specified conditions.
   """
-  where: Movie_Filter
+  where: Category_Filter
 }
 """
-✨ Generated having input type for table 'Movie'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+✨ Generated having input type for table 'Category'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
 """
-input Movie_Having {
+input Category_Having {
   """
   Apply multiple Having conditions using `AND` logic.
   """
-  _and: [Movie_Having!]
+  _and: [Category_Having!]
   """
   Whether to apply DISTINCT to the aggregate function.
   """
@@ -132,49 +136,49 @@ input Movie_Having {
   """
   Negate the result of the provided Having condition.
   """
-  _not: Movie_Having
+  _not: Category_Having
   """
   Apply multiple Having conditions using `OR` logic.
   """
-  _or: [Movie_Having!]
+  _or: [Category_Having!]
   """
-  ✨ Generated from Field `Movie`.`_count` of type `Int!`
+  ✨ Generated from Field `Category`.`_count` of type `Int!`
   """
   _count: Int_Filter
   """
-  ✨ Generated from Field `Movie`.`genre_count` of type `Int!`
+  ✨ Generated from Field `Category`.`iconName_count` of type `Int!`
   """
-  genre_count: Int_Filter
+  iconName_count: Int_Filter
   """
-  ✨ Generated from Field `Movie`.`id_count` of type `Int!`
+  ✨ Generated from Field `Category`.`id_count` of type `Int!`
   """
   id_count: Int_Filter
   """
-  ✨ Generated from Field `Movie`.`imageUrl_count` of type `Int!`
+  ✨ Generated from Field `Category`.`name_count` of type `Int!`
   """
-  imageUrl_count: Int_Filter
+  name_count: Int_Filter
   """
-  ✨ Generated from Field `Movie`.`title_count` of type `Int!`
+  ✨ Generated from Field `Category`.`pinColor_count` of type `Int!`
   """
-  title_count: Int_Filter
+  pinColor_count: Int_Filter
 }
 """
-✨ Generated key input type for table 'Movie'. It represents the primary key fields used to uniquely identify a row in the table.
+✨ Generated key input type for table 'Category'. It represents the primary key fields used to uniquely identify a row in the table.
 """
-input Movie_Key {
+input Category_Key {
   """
-  ✨ Generated from Field `Movie`.`id` of type `UUID!`
+  ✨ Generated from Field `Category`.`id` of type `String!`
   """
-  id: UUID
+  id: String
   """
-  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Movie`.`id` of type `UUID!`)
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Category`.`id` of type `String!`)
   """
-  id_expr: UUID_Expr @fdc_forbiddenInVariables
+  id_expr: String_Expr @fdc_forbiddenInVariables
 }
 """
-✨ Generated list filter input type for table 'Movie'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+✨ Generated list filter input type for table 'Category'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
 """
-input Movie_ListFilter {
+input Category_ListFilter {
   """
   The desired number of objects that match the condition (defaults to at least one).
   """
@@ -182,479 +186,176 @@ input Movie_ListFilter {
   """
   Condition of the related objects to filter for.
   """
-  exist: Movie_Filter
+  exist: Category_Filter
 }
 """
-✨ Generated order input type for table 'Movie'. This input defines the sorting order of rows in query results based on one or more fields.
+✨ Generated order input type for table 'Category'. This input defines the sorting order of rows in query results based on one or more fields.
 """
-input Movie_Order {
+input Category_Order {
   """
-  ✨ Generated from Field `Movie`.`id` of type `UUID!`
+  ✨ Generated from Field `Category`.`id` of type `String!`
   """
   id: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`genre` of type `String`
+  ✨ Generated from Field `Category`.`iconName` of type `String!`
   """
-  genre: OrderDirection
+  iconName: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`imageUrl` of type `String!`
+  ✨ Generated from Field `Category`.`name` of type `String!`
   """
-  imageUrl: OrderDirection
+  name: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`title` of type `String!`
+  ✨ Generated from Field `Category`.`pinColor` of type `String!`
   """
-  title: OrderDirection
+  pinColor: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`_count` of type `Int!`
+  ✨ Generated from Field `Category`.`_count` of type `Int!`
   """
   _count: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`genre_count` of type `Int!`
+  ✨ Generated from Field `Category`.`iconName_count` of type `Int!`
   """
-  genre_count: OrderDirection
+  iconName_count: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`id_count` of type `Int!`
+  ✨ Generated from Field `Category`.`id_count` of type `Int!`
   """
   id_count: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`imageUrl_count` of type `Int!`
+  ✨ Generated from Field `Category`.`name_count` of type `Int!`
   """
-  imageUrl_count: OrderDirection
+  name_count: OrderDirection
   """
-  ✨ Generated from Field `Movie`.`title_count` of type `Int!`
+  ✨ Generated from Field `Category`.`pinColor_count` of type `Int!`
   """
-  title_count: OrderDirection
+  pinColor_count: OrderDirection
 }
 """
-✨ Generated data input type for table 'MovieMetadata'. It includes all necessary fields for creating or upserting rows into table.
+✨ Generated data input type for table 'Comment'. It includes all necessary fields for creating or upserting rows into table.
 """
-input MovieMetadata_Data {
+input Comment_Data {
   """
-  ✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`
+  ✨ Generated from Field `Comment`.`id` of type `UUID!`
   """
   id: UUID
   """
-  ✨ `_expr` server value variant of `id` (✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`)
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Comment`.`id` of type `UUID!`)
   """
   id_expr: UUID_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `MovieMetadata`.`movieId` of type `UUID!`
+  ✨ Generated from Field `Comment`.`reportId` of type `UUID!`
   """
-  movieId: UUID
+  reportId: UUID
   """
-  ✨ `_expr` server value variant of `movieId` (✨ Generated from Field `MovieMetadata`.`movieId` of type `UUID!`)
+  ✨ `_expr` server value variant of `reportId` (✨ Generated from Field `Comment`.`reportId` of type `UUID!`)
   """
-  movieId_expr: UUID_Expr @fdc_forbiddenInVariables
+  reportId_expr: UUID_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `MovieMetadata`.`movie` of type `Movie!`
-  """
-  movie: Movie_Key @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `MovieMetadata`.`description` of type `String`
-  """
-  description: String
-  """
-  ✨ `_expr` server value variant of `description` (✨ Generated from Field `MovieMetadata`.`description` of type `String`)
-  """
-  description_expr: String_Expr @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating` of type `Float`
-  """
-  rating: Float
-  """
-  ✨ `_expr` server value variant of `rating` (✨ Generated from Field `MovieMetadata`.`rating` of type `Float`)
-  """
-  rating_expr: Float_Expr @fdc_forbiddenInVariables
-  """
-  ✨ `_update` server value variant of `rating` (✨ Generated from Field `MovieMetadata`.`rating` of type `Float`)
-  """
-  rating_update: [Float_Update!] @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear` of type `Int`
-  """
-  releaseYear: Int
-  """
-  ✨ `_expr` server value variant of `releaseYear` (✨ Generated from Field `MovieMetadata`.`releaseYear` of type `Int`)
-  """
-  releaseYear_expr: Int_Expr @fdc_forbiddenInVariables
-  """
-  ✨ `_update` server value variant of `releaseYear` (✨ Generated from Field `MovieMetadata`.`releaseYear` of type `Int`)
-  """
-  releaseYear_update: [Int_Update!] @fdc_forbiddenInVariables
-}
-"""
-✨ Generated filter input type for table 'MovieMetadata'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
-"""
-input MovieMetadata_Filter {
-  """
-  Apply multiple filter conditions using `AND` logic.
-  """
-  _and: [MovieMetadata_Filter!]
-  """
-  Negate the result of the provided filter condition.
-  """
-  _not: MovieMetadata_Filter
-  """
-  Apply multiple filter conditions using `OR` logic.
-  """
-  _or: [MovieMetadata_Filter!]
-  """
-  ✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`
-  """
-  id: UUID_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`movieId` of type `UUID!`
-  """
-  movieId: UUID_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`movie` of type `Movie!`
-  """
-  movie: Movie_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`description` of type `String`
-  """
-  description: String_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating` of type `Float`
-  """
-  rating: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear` of type `Int`
-  """
-  releaseYear: Int_Filter
-}
-"""
-✨ Generated first-row input type for table 'MovieMetadata'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
-"""
-input MovieMetadata_FirstRow {
-  """
-  Order the result by the specified fields.
-  """
-  orderBy: [MovieMetadata_Order!]
-  """
-  Filters rows based on the specified conditions.
-  """
-  where: MovieMetadata_Filter
-}
-"""
-✨ Generated having input type for table 'MovieMetadata'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
-"""
-input MovieMetadata_Having {
-  """
-  Apply multiple Having conditions using `AND` logic.
-  """
-  _and: [MovieMetadata_Having!]
-  """
-  Whether to apply DISTINCT to the aggregate function.
-  """
-  _distinct: Boolean
-  """
-  Negate the result of the provided Having condition.
-  """
-  _not: MovieMetadata_Having
-  """
-  Apply multiple Having conditions using `OR` logic.
-  """
-  _or: [MovieMetadata_Having!]
-  """
-  ✨ Generated from Field `MovieMetadata`.`_count` of type `Int!`
-  """
-  _count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`description_count` of type `Int!`
-  """
-  description_count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`id_count` of type `Int!`
-  """
-  id_count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`movieId_count` of type `Int!`
-  """
-  movieId_count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_count` of type `Int!`
-  """
-  rating_count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_count` of type `Int!`
-  """
-  releaseYear_count: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_sum` of type `Float`
-  """
-  rating_sum: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_sum` of type `Int`
-  """
-  releaseYear_sum: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_avg` of type `Float`
-  """
-  rating_avg: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_avg` of type `Float`
-  """
-  releaseYear_avg: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_min` of type `Float`
-  """
-  rating_min: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_min` of type `Int`
-  """
-  releaseYear_min: Int_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_max` of type `Float`
-  """
-  rating_max: Float_Filter
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_max` of type `Int`
-  """
-  releaseYear_max: Int_Filter
-}
-"""
-✨ Generated key input type for table 'MovieMetadata'. It represents the primary key fields used to uniquely identify a row in the table.
-"""
-input MovieMetadata_Key {
-  """
-  ✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`
-  """
-  id: UUID
-  """
-  ✨ `_expr` server value variant of `id` (✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`)
-  """
-  id_expr: UUID_Expr @fdc_forbiddenInVariables
-}
-"""
-✨ Generated list filter input type for table 'MovieMetadata'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
-"""
-input MovieMetadata_ListFilter {
-  """
-  The desired number of objects that match the condition (defaults to at least one).
-  """
-  count: Int_Filter = {gt:0}
-  """
-  Condition of the related objects to filter for.
-  """
-  exist: MovieMetadata_Filter
-}
-"""
-✨ Generated order input type for table 'MovieMetadata'. This input defines the sorting order of rows in query results based on one or more fields.
-"""
-input MovieMetadata_Order {
-  """
-  ✨ Generated from Field `MovieMetadata`.`id` of type `UUID!`
-  """
-  id: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`movieId` of type `UUID!`
-  """
-  movieId: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`movie` of type `Movie!`
-  """
-  movie: Movie_Order
-  """
-  ✨ Generated from Field `MovieMetadata`.`description` of type `String`
-  """
-  description: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating` of type `Float`
-  """
-  rating: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear` of type `Int`
-  """
-  releaseYear: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`_count` of type `Int!`
-  """
-  _count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`description_count` of type `Int!`
-  """
-  description_count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`id_count` of type `Int!`
-  """
-  id_count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`movieId_count` of type `Int!`
-  """
-  movieId_count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_count` of type `Int!`
-  """
-  rating_count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_count` of type `Int!`
-  """
-  releaseYear_count: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_sum` of type `Float`
-  """
-  rating_sum: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_sum` of type `Int`
-  """
-  releaseYear_sum: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_avg` of type `Float`
-  """
-  rating_avg: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_avg` of type `Float`
-  """
-  releaseYear_avg: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_min` of type `Float`
-  """
-  rating_min: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_min` of type `Int`
-  """
-  releaseYear_min: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`rating_max` of type `Float`
-  """
-  rating_max: OrderDirection
-  """
-  ✨ Generated from Field `MovieMetadata`.`releaseYear_max` of type `Int`
-  """
-  releaseYear_max: OrderDirection
-}
-"""
-✨ Generated data input type for table 'Review'. It includes all necessary fields for creating or upserting rows into table.
-"""
-input Review_Data {
-  """
-  ✨ Generated from Field `Review`.`movieId` of type `UUID!`
-  """
-  movieId: UUID
-  """
-  ✨ `_expr` server value variant of `movieId` (✨ Generated from Field `Review`.`movieId` of type `UUID!`)
-  """
-  movieId_expr: UUID_Expr @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `Review`.`userId` of type `String!`
+  ✨ Generated from Field `Comment`.`userId` of type `String!`
   """
   userId: String
   """
-  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Review`.`userId` of type `String!`)
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Comment`.`userId` of type `String!`)
   """
   userId_expr: String_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Review`.`movie` of type `Movie!`
+  ✨ Generated from Field `Comment`.`report` of type `Report!`
   """
-  movie: Movie_Key @fdc_forbiddenInVariables
+  report: Report_Key @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Review`.`user` of type `User!`
+  ✨ Generated from Field `Comment`.`user` of type `User!`
   """
   user: User_Key @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Review`.`rating` of type `Int`
+  ✨ Generated from Field `Comment`.`content` of type `String!`
   """
-  rating: Int
+  content: String
   """
-  ✨ `_expr` server value variant of `rating` (✨ Generated from Field `Review`.`rating` of type `Int`)
+  ✨ `_expr` server value variant of `content` (✨ Generated from Field `Comment`.`content` of type `String!`)
   """
-  rating_expr: Int_Expr @fdc_forbiddenInVariables
+  content_expr: String_Expr @fdc_forbiddenInVariables
   """
-  ✨ `_update` server value variant of `rating` (✨ Generated from Field `Review`.`rating` of type `Int`)
+  ✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`
   """
-  rating_update: [Int_Update!] @fdc_forbiddenInVariables
+  createdAt: Timestamp
   """
-  ✨ Generated from Field `Review`.`reviewDate` of type `Date!`
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`)
   """
-  reviewDate: Date
+  createdAt_expr: Timestamp_Expr @fdc_forbiddenInVariables
   """
-  ✨ `_date` server value variant of `reviewDate` (✨ Generated from Field `Review`.`reviewDate` of type `Date!`)
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`)
   """
-  reviewDate_date: Date_Relative @fdc_forbiddenInVariables
+  createdAt_time: Timestamp_Relative @fdc_forbiddenInVariables
   """
-  ✨ `_expr` server value variant of `reviewDate` (✨ Generated from Field `Review`.`reviewDate` of type `Date!`)
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`)
   """
-  reviewDate_expr: Date_Expr @fdc_forbiddenInVariables
-  """
-  ✨ `_update` server value variant of `reviewDate` (✨ Generated from Field `Review`.`reviewDate` of type `Date!`)
-  """
-  reviewDate_update: [Date_Update!] @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `Review`.`reviewText` of type `String`
-  """
-  reviewText: String
-  """
-  ✨ `_expr` server value variant of `reviewText` (✨ Generated from Field `Review`.`reviewText` of type `String`)
-  """
-  reviewText_expr: String_Expr @fdc_forbiddenInVariables
+  createdAt_update: [Timestamp_Update!] @fdc_forbiddenInVariables
 }
 """
-✨ Generated filter input type for table 'Review'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+✨ Generated filter input type for table 'Comment'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
 """
-input Review_Filter {
+input Comment_Filter {
   """
   Apply multiple filter conditions using `AND` logic.
   """
-  _and: [Review_Filter!]
+  _and: [Comment_Filter!]
   """
   Negate the result of the provided filter condition.
   """
-  _not: Review_Filter
+  _not: Comment_Filter
   """
   Apply multiple filter conditions using `OR` logic.
   """
-  _or: [Review_Filter!]
+  _or: [Comment_Filter!]
   """
-  ✨ Generated from Field `Review`.`movieId` of type `UUID!`
+  ✨ Generated from Field `Comment`.`id` of type `UUID!`
   """
-  movieId: UUID_Filter
+  id: UUID_Filter
   """
-  ✨ Generated from Field `Review`.`userId` of type `String!`
+  ✨ Generated from Field `Comment`.`reportId` of type `UUID!`
+  """
+  reportId: UUID_Filter
+  """
+  ✨ Generated from Field `Comment`.`userId` of type `String!`
   """
   userId: String_Filter
   """
-  ✨ Generated from Field `Review`.`movie` of type `Movie!`
+  ✨ Generated from Field `Comment`.`report` of type `Report!`
   """
-  movie: Movie_Filter
+  report: Report_Filter
   """
-  ✨ Generated from Field `Review`.`user` of type `User!`
+  ✨ Generated from Field `Comment`.`user` of type `User!`
   """
   user: User_Filter
   """
-  ✨ Generated from Field `Review`.`rating` of type `Int`
+  ✨ Generated from Field `Comment`.`content` of type `String!`
   """
-  rating: Int_Filter
+  content: String_Filter
   """
-  ✨ Generated from Field `Review`.`reviewDate` of type `Date!`
+  ✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`
   """
-  reviewDate: Date_Filter
-  """
-  ✨ Generated from Field `Review`.`reviewText` of type `String`
-  """
-  reviewText: String_Filter
+  createdAt: Timestamp_Filter
 }
 """
-✨ Generated first-row input type for table 'Review'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+✨ Generated first-row input type for table 'Comment'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
 """
-input Review_FirstRow {
+input Comment_FirstRow {
   """
   Order the result by the specified fields.
   """
-  orderBy: [Review_Order!]
+  orderBy: [Comment_Order!]
   """
   Filters rows based on the specified conditions.
   """
-  where: Review_Filter
+  where: Comment_Filter
 }
 """
-✨ Generated having input type for table 'Review'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+✨ Generated having input type for table 'Comment'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
 """
-input Review_Having {
+input Comment_Having {
   """
   Apply multiple Having conditions using `AND` logic.
   """
-  _and: [Review_Having!]
+  _and: [Comment_Having!]
   """
   Whether to apply DISTINCT to the aggregate function.
   """
@@ -662,85 +363,61 @@ input Review_Having {
   """
   Negate the result of the provided Having condition.
   """
-  _not: Review_Having
+  _not: Comment_Having
   """
   Apply multiple Having conditions using `OR` logic.
   """
-  _or: [Review_Having!]
+  _or: [Comment_Having!]
   """
-  ✨ Generated from Field `Review`.`_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`_count` of type `Int!`
   """
   _count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`movieId_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`content_count` of type `Int!`
   """
-  movieId_count: Int_Filter
+  content_count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`rating_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`createdAt_count` of type `Int!`
   """
-  rating_count: Int_Filter
+  createdAt_count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`reviewDate_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`id_count` of type `Int!`
   """
-  reviewDate_count: Int_Filter
+  id_count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`reviewText_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`reportId_count` of type `Int!`
   """
-  reviewText_count: Int_Filter
+  reportId_count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`userId_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`userId_count` of type `Int!`
   """
   userId_count: Int_Filter
   """
-  ✨ Generated from Field `Review`.`rating_sum` of type `Int`
+  ✨ Generated from Field `Comment`.`createdAt_min` of type `Timestamp`
   """
-  rating_sum: Int_Filter
+  createdAt_min: Timestamp_Filter
   """
-  ✨ Generated from Field `Review`.`rating_avg` of type `Float`
+  ✨ Generated from Field `Comment`.`createdAt_max` of type `Timestamp`
   """
-  rating_avg: Float_Filter
-  """
-  ✨ Generated from Field `Review`.`rating_min` of type `Int`
-  """
-  rating_min: Int_Filter
-  """
-  ✨ Generated from Field `Review`.`reviewDate_min` of type `Date`
-  """
-  reviewDate_min: Date_Filter
-  """
-  ✨ Generated from Field `Review`.`rating_max` of type `Int`
-  """
-  rating_max: Int_Filter
-  """
-  ✨ Generated from Field `Review`.`reviewDate_max` of type `Date`
-  """
-  reviewDate_max: Date_Filter
+  createdAt_max: Timestamp_Filter
 }
 """
-✨ Generated key input type for table 'Review'. It represents the primary key fields used to uniquely identify a row in the table.
+✨ Generated key input type for table 'Comment'. It represents the primary key fields used to uniquely identify a row in the table.
 """
-input Review_Key {
+input Comment_Key {
   """
-  ✨ Generated from Field `Review`.`movieId` of type `UUID!`
+  ✨ Generated from Field `Comment`.`id` of type `UUID!`
   """
-  movieId: UUID
+  id: UUID
   """
-  ✨ `_expr` server value variant of `movieId` (✨ Generated from Field `Review`.`movieId` of type `UUID!`)
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Comment`.`id` of type `UUID!`)
   """
-  movieId_expr: UUID_Expr @fdc_forbiddenInVariables
-  """
-  ✨ Generated from Field `Review`.`userId` of type `String!`
-  """
-  userId: String
-  """
-  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Review`.`userId` of type `String!`)
-  """
-  userId_expr: String_Expr @fdc_forbiddenInVariables
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
 }
 """
-✨ Generated list filter input type for table 'Review'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+✨ Generated list filter input type for table 'Comment'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
 """
-input Review_ListFilter {
+input Comment_ListFilter {
   """
   The desired number of objects that match the condition (defaults to at least one).
   """
@@ -748,88 +425,861 @@ input Review_ListFilter {
   """
   Condition of the related objects to filter for.
   """
-  exist: Review_Filter
+  exist: Comment_Filter
 }
 """
-✨ Generated order input type for table 'Review'. This input defines the sorting order of rows in query results based on one or more fields.
+✨ Generated order input type for table 'Comment'. This input defines the sorting order of rows in query results based on one or more fields.
 """
-input Review_Order {
+input Comment_Order {
   """
-  ✨ Generated from Field `Review`.`movieId` of type `UUID!`
+  ✨ Generated from Field `Comment`.`id` of type `UUID!`
   """
-  movieId: OrderDirection
+  id: OrderDirection
   """
-  ✨ Generated from Field `Review`.`userId` of type `String!`
+  ✨ Generated from Field `Comment`.`reportId` of type `UUID!`
+  """
+  reportId: OrderDirection
+  """
+  ✨ Generated from Field `Comment`.`userId` of type `String!`
   """
   userId: OrderDirection
   """
-  ✨ Generated from Field `Review`.`movie` of type `Movie!`
+  ✨ Generated from Field `Comment`.`report` of type `Report!`
   """
-  movie: Movie_Order
+  report: Report_Order
   """
-  ✨ Generated from Field `Review`.`user` of type `User!`
+  ✨ Generated from Field `Comment`.`user` of type `User!`
   """
   user: User_Order
   """
-  ✨ Generated from Field `Review`.`rating` of type `Int`
+  ✨ Generated from Field `Comment`.`content` of type `String!`
   """
-  rating: OrderDirection
+  content: OrderDirection
   """
-  ✨ Generated from Field `Review`.`reviewDate` of type `Date!`
+  ✨ Generated from Field `Comment`.`createdAt` of type `Timestamp!`
   """
-  reviewDate: OrderDirection
+  createdAt: OrderDirection
   """
-  ✨ Generated from Field `Review`.`reviewText` of type `String`
-  """
-  reviewText: OrderDirection
-  """
-  ✨ Generated from Field `Review`.`_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`_count` of type `Int!`
   """
   _count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`movieId_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`content_count` of type `Int!`
   """
-  movieId_count: OrderDirection
+  content_count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`rating_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`createdAt_count` of type `Int!`
   """
-  rating_count: OrderDirection
+  createdAt_count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`reviewDate_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`id_count` of type `Int!`
   """
-  reviewDate_count: OrderDirection
+  id_count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`reviewText_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`reportId_count` of type `Int!`
   """
-  reviewText_count: OrderDirection
+  reportId_count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`userId_count` of type `Int!`
+  ✨ Generated from Field `Comment`.`userId_count` of type `Int!`
   """
   userId_count: OrderDirection
   """
-  ✨ Generated from Field `Review`.`rating_sum` of type `Int`
+  ✨ Generated from Field `Comment`.`createdAt_min` of type `Timestamp`
   """
-  rating_sum: OrderDirection
+  createdAt_min: OrderDirection
   """
-  ✨ Generated from Field `Review`.`rating_avg` of type `Float`
+  ✨ Generated from Field `Comment`.`createdAt_max` of type `Timestamp`
   """
-  rating_avg: OrderDirection
+  createdAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Report'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Report_Data {
   """
-  ✨ Generated from Field `Review`.`rating_min` of type `Int`
+  ✨ Generated from Field `Report`.`id` of type `UUID!`
   """
-  rating_min: OrderDirection
+  id: UUID
   """
-  ✨ Generated from Field `Review`.`reviewDate_min` of type `Date`
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Report`.`id` of type `UUID!`)
   """
-  reviewDate_min: OrderDirection
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
   """
-  ✨ Generated from Field `Review`.`rating_max` of type `Int`
+  ✨ Generated from Field `Report`.`categoryId` of type `String!`
   """
-  rating_max: OrderDirection
+  categoryId: String
   """
-  ✨ Generated from Field `Review`.`reviewDate_max` of type `Date`
+  ✨ `_expr` server value variant of `categoryId` (✨ Generated from Field `Report`.`categoryId` of type `String!`)
   """
-  reviewDate_max: OrderDirection
+  categoryId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`userId` of type `String!`
+  """
+  userId: String
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Report`.`userId` of type `String!`)
+  """
+  userId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`category` of type `Category!`
+  """
+  category: Category_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`user` of type `User!`
+  """
+  user: User_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`description` of type `String`
+  """
+  description: String
+  """
+  ✨ `_expr` server value variant of `description` (✨ Generated from Field `Report`.`description` of type `String`)
+  """
+  description_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`latitude` of type `Float!`
+  """
+  latitude: Float
+  """
+  ✨ `_expr` server value variant of `latitude` (✨ Generated from Field `Report`.`latitude` of type `Float!`)
+  """
+  latitude_expr: Float_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `latitude` (✨ Generated from Field `Report`.`latitude` of type `Float!`)
+  """
+  latitude_update: [Float_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`longitude` of type `Float!`
+  """
+  longitude: Float
+  """
+  ✨ `_expr` server value variant of `longitude` (✨ Generated from Field `Report`.`longitude` of type `Float!`)
+  """
+  longitude_expr: Float_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `longitude` (✨ Generated from Field `Report`.`longitude` of type `Float!`)
+  """
+  longitude_update: [Float_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Report`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `Report`.`status` of type `String!`)
+  """
+  status_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'Report'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Report_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Report_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Report_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Report_Filter!]
+  """
+  ✨ Generated from Field `Report`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Report`.`categoryId` of type `String!`
+  """
+  categoryId: String_Filter
+  """
+  ✨ Generated from Field `Report`.`userId` of type `String!`
+  """
+  userId: String_Filter
+  """
+  ✨ Generated from Field `Report`.`category` of type `Category!`
+  """
+  category: Category_Filter
+  """
+  ✨ Generated from Field `Report`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Report`.`description` of type `String`
+  """
+  description: String_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude` of type `Float!`
+  """
+  latitude: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude` of type `Float!`
+  """
+  longitude: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`status` of type `String!`
+  """
+  status: String_Filter
+  """
+  ✨ Generated from Field `Report`.`comments_on_report` of type `[Comment!]!`
+  """
+  comments_on_report: Comment_ListFilter
+  """
+  ✨ Generated from Field `Report`.`reportPhotos_on_report` of type `[ReportPhoto!]!`
+  """
+  reportPhotos_on_report: ReportPhoto_ListFilter
+  """
+  ✨ Generated from Field `Report`.`upvotes_on_report` of type `[Upvote!]!`
+  """
+  upvotes_on_report: Upvote_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'Report'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Report_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Report_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Report_Filter
+}
+"""
+✨ Generated having input type for table 'Report'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Report_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Report_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Report_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Report_Having!]
+  """
+  ✨ Generated from Field `Report`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`categoryId_count` of type `Int!`
+  """
+  categoryId_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`description_count` of type `Int!`
+  """
+  description_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude_count` of type `Int!`
+  """
+  latitude_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude_count` of type `Int!`
+  """
+  longitude_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude_sum` of type `Float`
+  """
+  latitude_sum: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude_sum` of type `Float`
+  """
+  longitude_sum: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude_avg` of type `Float`
+  """
+  latitude_avg: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude_avg` of type `Float`
+  """
+  longitude_avg: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude_min` of type `Float`
+  """
+  latitude_min: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude_min` of type `Float`
+  """
+  longitude_min: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Report`.`latitude_max` of type `Float`
+  """
+  latitude_max: Float_Filter
+  """
+  ✨ Generated from Field `Report`.`longitude_max` of type `Float`
+  """
+  longitude_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'Report'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Report_Key {
+  """
+  ✨ Generated from Field `Report`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Report`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Report'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Report_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Report_Filter
+}
+"""
+✨ Generated order input type for table 'Report'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Report_Order {
+  """
+  ✨ Generated from Field `Report`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`categoryId` of type `String!`
+  """
+  categoryId: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`userId` of type `String!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`category` of type `Category!`
+  """
+  category: Category_Order
+  """
+  ✨ Generated from Field `Report`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `Report`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`description` of type `String`
+  """
+  description: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude` of type `Float!`
+  """
+  latitude: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude` of type `Float!`
+  """
+  longitude: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`categoryId_count` of type `Int!`
+  """
+  categoryId_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`description_count` of type `Int!`
+  """
+  description_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude_count` of type `Int!`
+  """
+  latitude_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude_count` of type `Int!`
+  """
+  longitude_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude_sum` of type `Float`
+  """
+  latitude_sum: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude_sum` of type `Float`
+  """
+  longitude_sum: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude_avg` of type `Float`
+  """
+  latitude_avg: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude_avg` of type `Float`
+  """
+  longitude_avg: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude_min` of type `Float`
+  """
+  latitude_min: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude_min` of type `Float`
+  """
+  longitude_min: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`latitude_max` of type `Float`
+  """
+  latitude_max: OrderDirection
+  """
+  ✨ Generated from Field `Report`.`longitude_max` of type `Float`
+  """
+  longitude_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ReportPhoto'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ReportPhoto_Data {
+  """
+  ✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `ReportPhoto`.`reportId` of type `UUID!`
+  """
+  reportId: UUID
+  """
+  ✨ `_expr` server value variant of `reportId` (✨ Generated from Field `ReportPhoto`.`reportId` of type `UUID!`)
+  """
+  reportId_expr: UUID_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `ReportPhoto`.`report` of type `Report!`
+  """
+  report: Report_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `ReportPhoto`.`imageUrl` of type `String!`
+  """
+  imageUrl: String
+  """
+  ✨ `_expr` server value variant of `imageUrl` (✨ Generated from Field `ReportPhoto`.`imageUrl` of type `String!`)
+  """
+  imageUrl_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'ReportPhoto'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ReportPhoto_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ReportPhoto_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ReportPhoto_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ReportPhoto_Filter!]
+  """
+  ✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`reportId` of type `UUID!`
+  """
+  reportId: UUID_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`report` of type `Report!`
+  """
+  report: Report_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`imageUrl` of type `String!`
+  """
+  imageUrl: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'ReportPhoto'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ReportPhoto_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ReportPhoto_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ReportPhoto_Filter
+}
+"""
+✨ Generated having input type for table 'ReportPhoto'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ReportPhoto_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ReportPhoto_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ReportPhoto_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ReportPhoto_Having!]
+  """
+  ✨ Generated from Field `ReportPhoto`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`imageUrl_count` of type `Int!`
+  """
+  imageUrl_count: Int_Filter
+  """
+  ✨ Generated from Field `ReportPhoto`.`reportId_count` of type `Int!`
+  """
+  reportId_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'ReportPhoto'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ReportPhoto_Key {
+  """
+  ✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'ReportPhoto'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ReportPhoto_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ReportPhoto_Filter
+}
+"""
+✨ Generated order input type for table 'ReportPhoto'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ReportPhoto_Order {
+  """
+  ✨ Generated from Field `ReportPhoto`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`reportId` of type `UUID!`
+  """
+  reportId: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`report` of type `Report!`
+  """
+  report: Report_Order
+  """
+  ✨ Generated from Field `ReportPhoto`.`imageUrl` of type `String!`
+  """
+  imageUrl: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`imageUrl_count` of type `Int!`
+  """
+  imageUrl_count: OrderDirection
+  """
+  ✨ Generated from Field `ReportPhoto`.`reportId_count` of type `Int!`
+  """
+  reportId_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Upvote'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Upvote_Data {
+  """
+  ✨ Generated from Field `Upvote`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Upvote`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Upvote`.`reportId` of type `UUID!`
+  """
+  reportId: UUID
+  """
+  ✨ `_expr` server value variant of `reportId` (✨ Generated from Field `Upvote`.`reportId` of type `UUID!`)
+  """
+  reportId_expr: UUID_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Upvote`.`userId` of type `String!`
+  """
+  userId: String
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Upvote`.`userId` of type `String!`)
+  """
+  userId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Upvote`.`report` of type `Report!`
+  """
+  report: Report_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Upvote`.`user` of type `User!`
+  """
+  user: User_Key @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'Upvote'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Upvote_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Upvote_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Upvote_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Upvote_Filter!]
+  """
+  ✨ Generated from Field `Upvote`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Upvote`.`reportId` of type `UUID!`
+  """
+  reportId: UUID_Filter
+  """
+  ✨ Generated from Field `Upvote`.`userId` of type `String!`
+  """
+  userId: String_Filter
+  """
+  ✨ Generated from Field `Upvote`.`report` of type `Report!`
+  """
+  report: Report_Filter
+  """
+  ✨ Generated from Field `Upvote`.`user` of type `User!`
+  """
+  user: User_Filter
+}
+"""
+✨ Generated first-row input type for table 'Upvote'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Upvote_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Upvote_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Upvote_Filter
+}
+"""
+✨ Generated having input type for table 'Upvote'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Upvote_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Upvote_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Upvote_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Upvote_Having!]
+  """
+  ✨ Generated from Field `Upvote`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Upvote`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Upvote`.`reportId_count` of type `Int!`
+  """
+  reportId_count: Int_Filter
+  """
+  ✨ Generated from Field `Upvote`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'Upvote'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Upvote_Key {
+  """
+  ✨ Generated from Field `Upvote`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Upvote`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Upvote'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Upvote_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Upvote_Filter
+}
+"""
+✨ Generated order input type for table 'Upvote'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Upvote_Order {
+  """
+  ✨ Generated from Field `Upvote`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`reportId` of type `UUID!`
+  """
+  reportId: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`userId` of type `String!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`report` of type `Report!`
+  """
+  report: Report_Order
+  """
+  ✨ Generated from Field `Upvote`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `Upvote`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`reportId_count` of type `Int!`
+  """
+  reportId_count: OrderDirection
+  """
+  ✨ Generated from Field `Upvote`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
 }
 """
 ✨ Generated data input type for table 'User'. It includes all necessary fields for creating or upserting rows into table.
@@ -843,6 +1293,30 @@ input User_Data {
   ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `String!`)
   """
   id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `User`.`email` of type `String!`)
+  """
+  email_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String!`
+  """
+  photoUrl: String
+  """
+  ✨ `_expr` server value variant of `photoUrl` (✨ Generated from Field `User`.`photoUrl` of type `String!`)
+  """
+  photoUrl_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `User`.`role` of type `String!`
+  """
+  role: String
+  """
+  ✨ `_expr` server value variant of `role` (✨ Generated from Field `User`.`role` of type `String!`)
+  """
+  role_expr: String_Expr @fdc_forbiddenInVariables
   """
   ✨ Generated from Field `User`.`username` of type `String!`
   """
@@ -873,17 +1347,33 @@ input User_Filter {
   """
   id: String_Filter
   """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String!`
+  """
+  photoUrl: String_Filter
+  """
+  ✨ Generated from Field `User`.`role` of type `String!`
+  """
+  role: String_Filter
+  """
   ✨ Generated from Field `User`.`username` of type `String!`
   """
   username: String_Filter
   """
-  ✨ Generated from Field `User`.`reviews_on_user` of type `[Review!]!`
+  ✨ Generated from Field `User`.`comments_on_user` of type `[Comment!]!`
   """
-  reviews_on_user: Review_ListFilter
+  comments_on_user: Comment_ListFilter
   """
-  ✨ Generated from Field `User`.`movies_via_Review` of type `[Movie!]!`
+  ✨ Generated from Field `User`.`reports_on_user` of type `[Report!]!`
   """
-  movies_via_Review: Movie_ListFilter
+  reports_on_user: Report_ListFilter
+  """
+  ✨ Generated from Field `User`.`upvotes_on_user` of type `[Upvote!]!`
+  """
+  upvotes_on_user: Upvote_ListFilter
 }
 """
 ✨ Generated first-row input type for table 'User'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
@@ -923,9 +1413,21 @@ input User_Having {
   """
   _count: Int_Filter
   """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
   ✨ Generated from Field `User`.`id_count` of type `Int!`
   """
   id_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`photoUrl_count` of type `Int!`
+  """
+  photoUrl_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`role_count` of type `Int!`
+  """
+  role_count: Int_Filter
   """
   ✨ Generated from Field `User`.`username_count` of type `Int!`
   """
@@ -966,6 +1468,18 @@ input User_Order {
   """
   id: OrderDirection
   """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String!`
+  """
+  photoUrl: OrderDirection
+  """
+  ✨ Generated from Field `User`.`role` of type `String!`
+  """
+  role: OrderDirection
+  """
   ✨ Generated from Field `User`.`username` of type `String!`
   """
   username: OrderDirection
@@ -974,9 +1488,21 @@ input User_Order {
   """
   _count: OrderDirection
   """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
   ✨ Generated from Field `User`.`id_count` of type `Int!`
   """
   id_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`photoUrl_count` of type `Int!`
+  """
+  photoUrl_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`role_count` of type `Int!`
+  """
+  role_count: OrderDirection
   """
   ✨ Generated from Field `User`.`username_count` of type `Int!`
   """

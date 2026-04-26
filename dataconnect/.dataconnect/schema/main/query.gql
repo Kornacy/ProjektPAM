@@ -1,8 +1,32 @@
 extend type Query {
   """
-  ✨ Look up a single `Movie` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  ✨ Look up a single `Category` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
   """
-  movie(
+  category(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Category_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Category_FirstRow
+  ): Category @fdc_generated(from: "Category", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Comment` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  comment(
     """
     The unique ID of the object.
     """
@@ -11,17 +35,17 @@ extend type Query {
     """
     The key used to identify the object.
     """
-    key: Movie_Key
+    key: Comment_Key
 
     """
     Fetch the first row based on the filters and ordering.
     """
-    first: Movie_FirstRow
-  ): Movie @fdc_generated(from: "Movie", purpose: QUERY_SINGLE)
+    first: Comment_FirstRow
+  ): Comment @fdc_generated(from: "Comment", purpose: QUERY_SINGLE)
   """
-  ✨ Look up a single `MovieMetadata` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  ✨ Look up a single `Report` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
   """
-  movieMetadata(
+  report(
     """
     The unique ID of the object.
     """
@@ -30,27 +54,51 @@ extend type Query {
     """
     The key used to identify the object.
     """
-    key: MovieMetadata_Key
+    key: Report_Key
 
     """
     Fetch the first row based on the filters and ordering.
     """
-    first: MovieMetadata_FirstRow
-  ): MovieMetadata @fdc_generated(from: "MovieMetadata", purpose: QUERY_SINGLE)
+    first: Report_FirstRow
+  ): Report @fdc_generated(from: "Report", purpose: QUERY_SINGLE)
   """
-  ✨ Look up a single `Review` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  ✨ Look up a single `ReportPhoto` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
   """
-  review(
+  reportPhoto(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
     """
     The key used to identify the object.
     """
-    key: Review_Key
+    key: ReportPhoto_Key
 
     """
     Fetch the first row based on the filters and ordering.
     """
-    first: Review_FirstRow
-  ): Review @fdc_generated(from: "Review", purpose: QUERY_SINGLE)
+    first: ReportPhoto_FirstRow
+  ): ReportPhoto @fdc_generated(from: "ReportPhoto", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Upvote` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  upvote(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Upvote_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Upvote_FirstRow
+  ): Upvote @fdc_generated(from: "Upvote", purpose: QUERY_SINGLE)
   """
   ✨ Look up a single `User` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
   """
@@ -76,18 +124,18 @@ extend type Query {
     first: User_FirstRow
   ): User @fdc_generated(from: "User", purpose: QUERY_SINGLE)
   """
-  ✨ List `Movie` objects in the table and return selected fields, optionally filtered by `where` conditions
+  ✨ List `Category` objects in the table and return selected fields, optionally filtered by `where` conditions
   """
-  movies(
+  categories(
     """
     Filter condition to narrow down the query results.
     """
-    where: Movie_Filter
+    where: Category_Filter
 
     """
     Order the query results by specific fields.
     """
-    orderBy: [Movie_Order!]
+    orderBy: [Category_Order!]
 
     """
     Number of rows to skip before starting to return the results.
@@ -107,21 +155,21 @@ extend type Query {
     """
     Filter condition to apply to the groups of aggregate queries.
     """
-    having: Movie_Having
-  ): [Movie!]! @fdc_generated(from: "Movie", purpose: QUERY_MULTIPLE)
+    having: Category_Having
+  ): [Category!]! @fdc_generated(from: "Category", purpose: QUERY_MULTIPLE)
   """
-  ✨ List `MovieMetadata` objects in the table and return selected fields, optionally filtered by `where` conditions
+  ✨ List `Comment` objects in the table and return selected fields, optionally filtered by `where` conditions
   """
-  movieMetadatas(
+  comments(
     """
     Filter condition to narrow down the query results.
     """
-    where: MovieMetadata_Filter
+    where: Comment_Filter
 
     """
     Order the query results by specific fields.
     """
-    orderBy: [MovieMetadata_Order!]
+    orderBy: [Comment_Order!]
 
     """
     Number of rows to skip before starting to return the results.
@@ -141,21 +189,21 @@ extend type Query {
     """
     Filter condition to apply to the groups of aggregate queries.
     """
-    having: MovieMetadata_Having
-  ): [MovieMetadata!]! @fdc_generated(from: "MovieMetadata", purpose: QUERY_MULTIPLE)
+    having: Comment_Having
+  ): [Comment!]! @fdc_generated(from: "Comment", purpose: QUERY_MULTIPLE)
   """
-  ✨ List `Review` objects in the table and return selected fields, optionally filtered by `where` conditions
+  ✨ List `Report` objects in the table and return selected fields, optionally filtered by `where` conditions
   """
-  reviews(
+  reports(
     """
     Filter condition to narrow down the query results.
     """
-    where: Review_Filter
+    where: Report_Filter
 
     """
     Order the query results by specific fields.
     """
-    orderBy: [Review_Order!]
+    orderBy: [Report_Order!]
 
     """
     Number of rows to skip before starting to return the results.
@@ -175,8 +223,76 @@ extend type Query {
     """
     Filter condition to apply to the groups of aggregate queries.
     """
-    having: Review_Having
-  ): [Review!]! @fdc_generated(from: "Review", purpose: QUERY_MULTIPLE)
+    having: Report_Having
+  ): [Report!]! @fdc_generated(from: "Report", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `ReportPhoto` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  reportPhotos(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ReportPhoto_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ReportPhoto_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ReportPhoto_Having
+  ): [ReportPhoto!]! @fdc_generated(from: "ReportPhoto", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Upvote` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  upvotes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Upvote_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Upvote_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Upvote_Having
+  ): [Upvote!]! @fdc_generated(from: "Upvote", purpose: QUERY_MULTIPLE)
   """
   ✨ List `User` objects in the table and return selected fields, optionally filtered by `where` conditions
   """

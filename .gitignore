@@ -60,7 +60,43 @@ GoogleService-Info.plist
 # Lokalne dane emulatora Firebase 
 /emulator-data/
 /firebase-export/
+lib/firebase_options.dart
 
 # Pliki konfiguracyjne MacOS 
 .AppleDouble
 .LSOverride
+
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase.json
+.env
+
+# Firebase
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase.json
+.firebaserc
+.env
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+
+# Android
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+
+# IDE
+.idea/
+.vscode/
+*.iml

@@ -1,4 +1,4 @@
-part of 'default_connector.dart';
+part of 'default.dart';
 
 class GetReportsVariablesBuilder {
   

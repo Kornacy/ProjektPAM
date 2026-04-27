@@ -3,10 +3,6 @@ import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
-part 'get_reports.dart';
-
-part 'get_categories.dart';
-
 part 'upsert_user.dart';
 
 part 'create_report.dart';
@@ -15,23 +11,17 @@ part 'add_photo.dart';
 
 part 'upvote_report.dart';
 
+part 'get_reports.dart';
+
+part 'get_categories.dart';
 
 
 
 
 
 
-class DefaultConnectorConnector {
-  
-  
-  GetReportsVariablesBuilder getReports () {
-    return GetReportsVariablesBuilder(dataConnect, );
-  }
-  
-  
-  GetCategoriesVariablesBuilder getCategories () {
-    return GetCategoriesVariablesBuilder(dataConnect, );
-  }
+
+class DefaultConnector {
   
   
   UpsertUserVariablesBuilder upsertUser ({required String email, }) {
@@ -53,17 +43,27 @@ class DefaultConnectorConnector {
     return UpvoteReportVariablesBuilder(dataConnect, reportId: reportId,);
   }
   
+  
+  GetReportsVariablesBuilder getReports () {
+    return GetReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetCategoriesVariablesBuilder getCategories () {
+    return GetCategoriesVariablesBuilder(dataConnect, );
+  }
+  
 
   static ConnectorConfig connectorConfig = ConnectorConfig(
     'europe-central2',
-    'default_connector',
+    'default',
     'projektpam',
   );
 
-  DefaultConnectorConnector({required this.dataConnect});
-  static DefaultConnectorConnector get instance {
+  DefaultConnector({required this.dataConnect});
+  static DefaultConnector get instance {
     
-    return DefaultConnectorConnector(
+    return DefaultConnector(
         dataConnect: FirebaseDataConnect.instanceFor(
             connectorConfig: connectorConfig,
             

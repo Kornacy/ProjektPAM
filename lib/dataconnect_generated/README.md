@@ -15,7 +15,7 @@ Each connector creates a static class, with an instance of the `DataConnect` cla
 ```dart
 String host = 'localhost'; // or your host name
 int port = 9399; // or your port number
-DefaultConnectorConnector.instance.dataConnect.useDataConnectEmulator(host, port);
+DefaultConnector.instance.dataConnect.useDataConnectEmulator(host, port);
 ```
 
 You can also call queries and mutations by using the connector class.
@@ -25,7 +25,7 @@ You can also call queries and mutations by using the connector class.
 #### Required Arguments
 ```dart
 // No required arguments
-DefaultConnectorConnector.instance.getReports().execute();
+DefaultConnector.instance.getReports().execute();
 ```
 
 
@@ -46,7 +46,7 @@ class QueryResult<Data, Variables> extends OperationResult<Data, Variables> {
   QueryResult(super.dataConnect, super.data, super.ref);
 }
 
-final result = await DefaultConnectorConnector.instance.getReports();
+final result = await DefaultConnector.instance.getReports();
 GetReportsData data = result.data;
 final ref = result.ref;
 ```
@@ -55,7 +55,7 @@ final ref = result.ref;
 Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
 An example of how to use the `Ref` object is shown below:
 ```dart
-final ref = DefaultConnectorConnector.instance.getReports().ref();
+final ref = DefaultConnector.instance.getReports().ref();
 ref.execute();
 
 ref.subscribe(...);
@@ -66,7 +66,7 @@ ref.subscribe(...);
 #### Required Arguments
 ```dart
 // No required arguments
-DefaultConnectorConnector.instance.getCategories().execute();
+DefaultConnector.instance.getCategories().execute();
 ```
 
 
@@ -87,7 +87,7 @@ class QueryResult<Data, Variables> extends OperationResult<Data, Variables> {
   QueryResult(super.dataConnect, super.data, super.ref);
 }
 
-final result = await DefaultConnectorConnector.instance.getCategories();
+final result = await DefaultConnector.instance.getCategories();
 GetCategoriesData data = result.data;
 final ref = result.ref;
 ```
@@ -96,7 +96,7 @@ final ref = result.ref;
 Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
 An example of how to use the `Ref` object is shown below:
 ```dart
-final ref = DefaultConnectorConnector.instance.getCategories().ref();
+final ref = DefaultConnector.instance.getCategories().ref();
 ref.execute();
 
 ref.subscribe(...);
@@ -108,7 +108,7 @@ ref.subscribe(...);
 #### Required Arguments
 ```dart
 String email = ...;
-DefaultConnectorConnector.instance.upsertUser(
+DefaultConnector.instance.upsertUser(
   email: email,
 ).execute();
 ```
@@ -130,7 +130,7 @@ class UpsertUserVariablesBuilder {
 
   ...
 }
-DefaultConnectorConnector.instance.upsertUser(
+DefaultConnector.instance.upsertUser(
   email: email,
 )
 .username(username)
@@ -149,7 +149,7 @@ class OperationResult<Data, Variables> {
   FirebaseDataConnect dataConnect;
 }
 
-final result = await DefaultConnectorConnector.instance.upsertUser(
+final result = await DefaultConnector.instance.upsertUser(
   email: email,
 );
 UpsertUserData data = result.data;
@@ -162,7 +162,7 @@ An example of how to use the `Ref` object is shown below:
 ```dart
 String email = ...;
 
-final ref = DefaultConnectorConnector.instance.upsertUser(
+final ref = DefaultConnector.instance.upsertUser(
   email: email,
 ).ref();
 ref.execute();
@@ -175,7 +175,7 @@ ref.execute();
 String category = ...;
 double lat = ...;
 double lng = ...;
-DefaultConnectorConnector.instance.createReport(
+DefaultConnector.instance.createReport(
   category: category,
   lat: lat,
   lng: lng,
@@ -195,7 +195,7 @@ class CreateReportVariablesBuilder {
 
   ...
 }
-DefaultConnectorConnector.instance.createReport(
+DefaultConnector.instance.createReport(
   category: category,
   lat: lat,
   lng: lng,
@@ -215,7 +215,7 @@ class OperationResult<Data, Variables> {
   FirebaseDataConnect dataConnect;
 }
 
-final result = await DefaultConnectorConnector.instance.createReport(
+final result = await DefaultConnector.instance.createReport(
   category: category,
   lat: lat,
   lng: lng,
@@ -232,7 +232,7 @@ String category = ...;
 double lat = ...;
 double lng = ...;
 
-final ref = DefaultConnectorConnector.instance.createReport(
+final ref = DefaultConnector.instance.createReport(
   category: category,
   lat: lat,
   lng: lng,
@@ -246,7 +246,7 @@ ref.execute();
 ```dart
 String reportId = ...;
 String url = ...;
-DefaultConnectorConnector.instance.addPhoto(
+DefaultConnector.instance.addPhoto(
   reportId: reportId,
   url: url,
 ).execute();
@@ -265,7 +265,7 @@ class OperationResult<Data, Variables> {
   FirebaseDataConnect dataConnect;
 }
 
-final result = await DefaultConnectorConnector.instance.addPhoto(
+final result = await DefaultConnector.instance.addPhoto(
   reportId: reportId,
   url: url,
 );
@@ -280,7 +280,7 @@ An example of how to use the `Ref` object is shown below:
 String reportId = ...;
 String url = ...;
 
-final ref = DefaultConnectorConnector.instance.addPhoto(
+final ref = DefaultConnector.instance.addPhoto(
   reportId: reportId,
   url: url,
 ).ref();
@@ -292,7 +292,7 @@ ref.execute();
 #### Required Arguments
 ```dart
 String reportId = ...;
-DefaultConnectorConnector.instance.upvoteReport(
+DefaultConnector.instance.upvoteReport(
   reportId: reportId,
 ).execute();
 ```
@@ -310,7 +310,7 @@ class OperationResult<Data, Variables> {
   FirebaseDataConnect dataConnect;
 }
 
-final result = await DefaultConnectorConnector.instance.upvoteReport(
+final result = await DefaultConnector.instance.upvoteReport(
   reportId: reportId,
 );
 UpvoteReportData data = result.data;
@@ -323,7 +323,7 @@ An example of how to use the `Ref` object is shown below:
 ```dart
 String reportId = ...;
 
-final ref = DefaultConnectorConnector.instance.upvoteReport(
+final ref = DefaultConnector.instance.upvoteReport(
   reportId: reportId,
 ).ref();
 ref.execute();

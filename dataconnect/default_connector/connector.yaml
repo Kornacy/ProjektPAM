@@ -1,4 +1,4 @@
-connectorId: "default_connector"
+connectorId: "default"
 generate:
   dartSdk:
     outputDir: "../../lib/dataconnect_generated"

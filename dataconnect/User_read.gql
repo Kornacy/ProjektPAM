@@ -1,0 +1,12 @@
+
+# This is a file for you to write an un-named query.
+# Only one un-named query is allowed per file.
+query {
+  users{
+    id
+    email
+    username
+    photoUrl
+    role
+  }
+}

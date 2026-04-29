@@ -62,6 +62,7 @@ Future<void> _signInToFirebase(GoogleSignInAccount gAccount) async {
 }
 
 Future<void> _upsertUser(User user) async {
+  print('Zapisuję użytkownika: ${user.email}');
   await DefaultConnector.instance.upsertUser(
     email: user.email ?? '')
     .username(user.displayName)

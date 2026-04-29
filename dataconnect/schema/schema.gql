@@ -4,7 +4,7 @@
 type User @table {
   # `@default(expr: "auth.uid")` sets it to Firebase Auth UID during insert and upsert.
   id: String! @default(expr: "auth.uid")
-  email: String! @col(dataType: "valchar(50)")
+  email: String! @col(dataType: "varchar(50)")
   username: String! @col(dataType: "varchar(50)")
   photoUrl: String! @col(dataType: "varchar(2048)")
   role: String! @default(value: "CITIZEN") @col(dataType: "varchar(20)")

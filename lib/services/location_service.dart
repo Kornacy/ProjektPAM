@@ -45,4 +45,12 @@ class LocationService {
     await prefs.setDouble(_lngKey, position.longitude);
     return position;
   }
+  Stream<Position> getLocationStream() {
+  return Geolocator.getPositionStream(
+    locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10, // aktualizuj co 10 metrów 
+    ),
+  );
+}
 }

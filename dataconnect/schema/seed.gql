@@ -1,0 +1,26 @@
+mutation SeedCategories {
+  drogi: category_insert(data: {
+    id: "DROGI"
+    name: "Drogi"
+    iconName: "road"
+    pinColor: "#FF0000"
+  })
+  oswietlenie: category_insert(data: {
+    id: "OSWIETLENIE"
+    name: "Oświetlenie"
+    iconName: "lightbulb"
+    pinColor: "#FFFF00"
+  })
+  smieci: category_insert(data: {
+    id: "SMIECI"
+    name: "Śmieci"
+    iconName: "delete"
+    pinColor: "#00FF00"
+  })
+  inne: category_insert(data: {
+    id: "INNE"
+    name: "Inne"
+    iconName: "help"
+    pinColor: "#0000FF"
+  })
+}

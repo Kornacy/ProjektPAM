@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/screens/auth_screen.dart';
 import 'package:city_issues/screens/map_screen.dart';
+import 'package:city_issues/screens/camera_screen.dart';
+import 'package:city_issues/screens/report_screen.dart';
 import 'firebase_options.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/screens/camera_screen.dart';
+
 //TODO Zmienić na false dla produkcji
 const bool _useEmulator = true;
-const String _emulatorHost = '192.168.0.42';
+const String _emulatorHost = '192.168.227.162';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,12 +69,21 @@ class HomePage extends StatelessWidget {
               ),
               child: const Text('Mapa'),
             ),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CameraScreen()),
               ),
               child: const Text('Aparat'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreateReportScreen()),
+              ),
+              child: const Text('Nowe zgłoszenie'),
             ),
           ],
         ),

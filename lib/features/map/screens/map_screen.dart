@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -5,7 +6,9 @@ import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:city_issues/features/map/widgets/map_hold_overlay.dart';
 import 'package:city_issues/features/map/widgets/report_marker_sheet.dart';
+import 'package:city_issues/features/reports/screens/create_report_screen.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/reports_repository.dart';
 
@@ -24,10 +27,18 @@ class MapScreenState extends State<MapScreen> {
   Set<Marker> _markers = {};
   List<GetReportsReports> _reports = [];
 
+  LatLng? _holdTarget;
+  Timer? _holdTimer;
+  double _holdProgress = 0;
+  int _holdSecondsLeft = 5;
+  static const Duration _holdDuration = Duration(seconds: 5);
+
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(52.2297, 21.0122),
     zoom: 13,
   );
+
+  bool get _isHolding => _holdTarget != null;
 
   @override
   void initState() {
@@ -67,7 +78,7 @@ class MapScreenState extends State<MapScreen> {
   }
 
   Set<Marker> _buildMarkers(List<GetReportsReports> reports) {
-    return reports.map((report) {
+    final markers = reports.map((report) {
       return Marker(
         markerId: MarkerId(report.id),
         position: LatLng(report.latitude, report.longitude),
@@ -77,11 +88,23 @@ class MapScreenState extends State<MapScreen> {
         onTap: () => _showReportSheet(report),
       );
     }).toSet();
+
+    if (_holdTarget != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('pending_report'),
+          position: _holdTarget!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: const InfoWindow(title: 'Nowe zgłoszenie'),
+        ),
+      );
+    }
+
+    return markers;
   }
 
   double _hueFromColor(Color color) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl.hue;
+    return HSLColor.fromColor(color).hue;
   }
 
   void _showReportSheet(GetReportsReports report) {
@@ -90,6 +113,61 @@ class MapScreenState extends State<MapScreen> {
       isScrollControlled: true,
       builder: (_) => ReportMarkerSheet(report: report),
     );
+  }
+
+  void _onMapLongPress(LatLng position) {
+    _cancelHold();
+    setState(() {
+      _holdTarget = position;
+      _holdProgress = 0;
+      _holdSecondsLeft = 5;
+      _markers = _buildMarkers(_reports);
+    });
+
+    var elapsedMs = 0;
+    _holdTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      elapsedMs += 100;
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _holdProgress = elapsedMs / _holdDuration.inMilliseconds;
+        _holdSecondsLeft =
+            ((_holdDuration.inMilliseconds - elapsedMs) / 1000).ceil().clamp(0, 5);
+      });
+      if (elapsedMs >= _holdDuration.inMilliseconds) {
+        timer.cancel();
+        final target = _holdTarget;
+        _cancelHold();
+        if (target != null) _openCreateReportAt(target);
+      }
+    });
+  }
+
+  void _cancelHold() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    if (_holdTarget != null) {
+      setState(() {
+        _holdTarget = null;
+        _holdProgress = 0;
+        _holdSecondsLeft = 5;
+        _markers = _buildMarkers(_reports);
+      });
+    }
+  }
+
+  Future<void> _openCreateReportAt(LatLng location) async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CreateReportScreen(initialLocation: location),
+      ),
+    );
+    if (created == true) {
+      setState(() => _isLoading = true);
+      await _loadReports();
+    }
   }
 
   Future<void> _fetchCurrentLocation() async {
@@ -146,7 +224,50 @@ class MapScreenState extends State<MapScreen> {
                 _moveCameraTo(_currentPosition!);
               }
             },
+            onLongPress: _onMapLongPress,
+            onTap: (_) {
+              if (_isHolding) _cancelHold();
+            },
+            onCameraMoveStarted: () {
+              if (_isHolding) _cancelHold();
+            },
           ),
+          if (!_isHolding)
+            Positioned(
+              top: 8,
+              left: 16,
+              right: 16,
+              child: Material(
+                elevation: 2,
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.touch_app_outlined,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Przytrzymaj mapę przez 5 s, aby dodać zgłoszenie w wybranym miejscu',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (_isHolding)
+            MapHoldOverlay(
+              progress: _holdProgress,
+              secondsLeft: _holdSecondsLeft,
+              onCancel: _cancelHold,
+            ),
           if (_isLoading && _reports.isEmpty)
             const AppLoading(message: 'Ładowanie mapy...'),
           if (_error != null && _reports.isEmpty)
@@ -163,6 +284,7 @@ class MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    _holdTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }

@@ -11,7 +11,9 @@ import 'package:city_issues/services/report_service.dart';
 import 'package:city_issues/services/reports_repository.dart';
 
 class CreateReportScreen extends StatefulWidget {
-  const CreateReportScreen({super.key});
+  const CreateReportScreen({super.key, this.initialLocation});
+
+  final LatLng? initialLocation;
 
   @override
   State<CreateReportScreen> createState() => _CreateReportScreenState();
@@ -44,7 +46,12 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   void initState() {
     super.initState();
     _loadCategories();
-    _loadLocation();
+    if (widget.initialLocation != null) {
+      _location = widget.initialLocation;
+      _locationLoading = false;
+    } else {
+      _loadLocation();
+    }
   }
 
   Future<void> _loadCategories() async {

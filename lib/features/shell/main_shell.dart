@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
 import 'package:city_issues/features/reports/screens/create_report_screen.dart';
 import 'package:city_issues/features/reports/screens/my_reports_screen.dart';
@@ -18,9 +19,11 @@ class _MainShellState extends State<MainShell> {
 
   int get _navIndex => _stackIndex == 2 ? 3 : _stackIndex;
 
-  Future<void> _openCreateReport() async {
+  Future<void> _openCreateReport({LatLng? initialLocation}) async {
     final created = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const CreateReportScreen()),
+      MaterialPageRoute(
+        builder: (_) => CreateReportScreen(initialLocation: initialLocation),
+      ),
     );
     if (created == true) {
       _mapKey.currentState?.refreshReports();

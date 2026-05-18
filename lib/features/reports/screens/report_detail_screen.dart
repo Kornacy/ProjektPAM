@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:city_issues/features/reports/widgets/comments_placeholder.dart';
+import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportDetailScreen extends StatelessWidget {
   const ReportDetailScreen({super.key, required this.report});
@@ -12,6 +14,7 @@ class ReportDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final position = LatLng(report.latitude, report.longitude);
     final photos = report.reportPhotos_on_report;
+    final upvoteCount = report.upvotes_on_report.length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Szczegóły zgłoszenia')),
@@ -28,7 +31,7 @@ class ReportDetailScreen extends StatelessWidget {
                     photos[i].imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade200,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: const Icon(Icons.broken_image, size: 48),
                     ),
                   ),
@@ -37,7 +40,7 @@ class ReportDetailScreen extends StatelessWidget {
             else
               Container(
                 height: 160,
-                color: Colors.grey.shade200,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: Icon(
                   ReportUtils.categoryIcon(report.category.iconName),
                   size: 64,
@@ -71,17 +74,16 @@ class ReportDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Opis',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  UpvoteButton(
+                    reportId: report.id,
+                    initialCount: upvoteCount,
                   ),
+                  const SizedBox(height: 16),
+                  Text('Opis', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text(report.description ?? 'Brak opisu'),
                   const SizedBox(height: 16),
-                  Text(
-                    'Lokalizacja',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text('Lokalizacja', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -104,13 +106,8 @@ class ReportDetailScreen extends StatelessWidget {
                     '${report.latitude.toStringAsFixed(5)}, ${report.longitude.toStringAsFixed(5)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  if (report.upvotes_on_report.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'Poparcia: ${report.upvotes_on_report.length}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                  const SizedBox(height: 24),
+                  const CommentsPlaceholder(),
                 ],
               ),
             ),

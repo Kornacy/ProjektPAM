@@ -22,4 +22,8 @@ class ReportsRepository {
     final result = await DefaultConnector.instance.getCategories().execute();
     return result.data.categories;
   }
+
+  Future<void> upvoteReport(String reportId) async {
+    await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+  }
 }

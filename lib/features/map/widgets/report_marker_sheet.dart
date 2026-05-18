@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
+import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportMarkerSheet extends StatelessWidget {
   const ReportMarkerSheet({super.key, required this.report});
@@ -80,7 +81,12 @@ class ReportMarkerSheet extends StatelessWidget {
               const SizedBox(height: 8),
               Text(report.description!, maxLines: 3, overflow: TextOverflow.ellipsis),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            UpvoteButton(
+              reportId: report.id,
+              initialCount: report.upvotes_on_report.length,
+            ),
+            const SizedBox(height: 12),
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);

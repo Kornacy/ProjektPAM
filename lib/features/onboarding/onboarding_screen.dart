@@ -26,8 +26,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.map_outlined,
       title: 'Mapa zgłoszeń',
       body:
-          'Przeglądaj zgłoszenia innych mieszkańców. Przytrzymaj punkt na mapie '
-          'przez 3 sekundy, aby dodać zgłoszenie w wybranym miejscu.',
+          'Przeglądaj zgłoszenia innych mieszkańców. Dotknij mapy, aby '
+          'wybrać miejsce nowego zgłoszenia (3 s odliczania).',
     ),
     _OnboardingPage(
       icon: Icons.add_a_photo_outlined,

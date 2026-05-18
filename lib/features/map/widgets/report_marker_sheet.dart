@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:city_issues/features/reports/widgets/photo_viewer.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportMarkerSheet extends StatelessWidget {
@@ -41,19 +42,10 @@ class ReportMarkerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             if (_photoUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  _photoUrl!,
-                  height: 140,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 140,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image),
-                  ),
-                ),
+              TappableNetworkPhoto(
+                imageUrl: _photoUrl!,
+                height: 140,
+                allUrls: report.reportPhotos_on_report.map((p) => p.imageUrl).toList(),
               ),
             const SizedBox(height: 12),
             Row(

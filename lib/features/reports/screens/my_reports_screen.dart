@@ -5,6 +5,7 @@ import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
+import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/services/reports_repository.dart';
 
 class MyReportsScreen extends StatefulWidget {
@@ -69,7 +70,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
-        padding: const EdgeInsets.all(8),
+        padding: ScrollPadding.list(context, includeNavBar: true).copyWith(top: 8),
         itemCount: _reports!.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
         itemBuilder: (context, index) {

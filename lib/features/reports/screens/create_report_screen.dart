@@ -8,12 +8,22 @@ import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/camera_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/report_service.dart';
+import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/services/reports_repository.dart';
 
 class CreateReportScreen extends StatefulWidget {
-  const CreateReportScreen({super.key, this.initialLocation});
+  const CreateReportScreen({
+    super.key,
+    this.initialLocation,
+    this.embedded = false,
+    this.onClose,
+    this.onSubmitted,
+  });
 
   final LatLng? initialLocation;
+  final bool embedded;
+  final VoidCallback? onClose;
+  final VoidCallback? onSubmitted;
 
   @override
   State<CreateReportScreen> createState() => _CreateReportScreenState();
@@ -127,7 +137,11 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Zgłoszenie zostało wysłane.')),
         );
-        Navigator.pop(context, true);
+        if (widget.embedded) {
+          widget.onSubmitted?.call();
+        } else {
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       setState(() => _submitError = e.toString());
@@ -136,14 +150,35 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     }
   }
 
+  void _handleBack() {
+    if (widget.embedded) {
+      widget.onClose?.call();
+    } else {
+      Navigator.maybePop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Nowe zgłoszenie')),
-      body: _categoriesLoading
+    return PopScope(
+      canPop: !widget.embedded,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && widget.embedded) _handleBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Nowe zgłoszenie'),
+          leading: widget.embedded
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _handleBack,
+                )
+              : null,
+        ),
+        body: _categoriesLoading
           ? const AppLoading(message: 'Ładowanie formularza...')
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: ScrollPadding.list(context, includeNavBar: widget.embedded),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -200,6 +235,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 

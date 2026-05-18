@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/reports/widgets/comments_placeholder.dart';
+import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportDetailScreen extends StatelessWidget {
@@ -18,8 +19,10 @@ class ReportDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Szczegóły zgłoszenia')),
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: ScrollPadding.list(context),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (photos.isNotEmpty)
@@ -112,6 +115,7 @@ class ReportDetailScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

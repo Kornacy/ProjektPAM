@@ -4,12 +4,13 @@ import 'package:city_issues/core/widgets/app_empty.dart';
 import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/services/reports_repository.dart';
 
 class MyReportsScreen extends StatefulWidget {
-  const MyReportsScreen({super.key});
+  const MyReportsScreen({super.key, required this.onOpenReportDetail});
+
+  final void Function(GetReportsReports report) onOpenReportDetail;
 
   @override
   MyReportsScreenState createState() => MyReportsScreenState();
@@ -113,12 +114,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
                 ),
               ),
             ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ReportDetailScreen(report: report),
-              ),
-            ),
+            onTap: () => widget.onOpenReportDetail(report),
           );
         },
       ),

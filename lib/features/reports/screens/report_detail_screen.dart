@@ -7,9 +7,14 @@ import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportDetailScreen extends StatelessWidget {
-  const ReportDetailScreen({super.key, required this.report});
+  const ReportDetailScreen({
+    super.key,
+    required this.report,
+    this.onBack,
+  });
 
   final GetReportsReports report;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +23,16 @@ class ReportDetailScreen extends StatelessWidget {
     final upvoteCount = report.upvotes_on_report.length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Szczegóły zgłoszenia')),
+      appBar: AppBar(
+        title: const Text('Szczegóły zgłoszenia'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: onBack ?? () => Navigator.maybePop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: ScrollPadding.list(context),
+          padding: ScrollPadding.list(context, includeNavBar: true),
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

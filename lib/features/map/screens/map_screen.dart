@@ -16,9 +16,11 @@ class MapScreen extends StatefulWidget {
   const MapScreen({
     super.key,
     required this.onCreateReportAt,
+    required this.onOpenReportDetail,
   });
 
   final void Function(LatLng location) onCreateReportAt;
+  final void Function(GetReportsReports report) onOpenReportDetail;
 
   @override
   State<MapScreen> createState() => MapScreenState();
@@ -33,8 +35,13 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
   List<GetReportsReports> _reports = [];
 
   LatLng? _holdTarget;
+  Offset? _holdScreenCenter;
   AnimationController? _holdController;
-  static const Duration _holdDuration = Duration(seconds: 5);
+  int _holdGeneration = 0;
+  bool _listenPointerUp = false;
+
+  static const Duration _holdDuration = Duration(seconds: 3);
+  static const int _holdSeconds = 3;
 
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(52.2297, 21.0122),
@@ -92,7 +99,7 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
   }
 
   Set<Marker> _buildMarkers(List<GetReportsReports> reports) {
-    final markers = reports.map((report) {
+    return reports.map((report) {
       return Marker(
         markerId: MarkerId(report.id),
         position: LatLng(report.latitude, report.longitude),
@@ -102,19 +109,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         onTap: () => _showReportSheet(report),
       );
     }).toSet();
-
-    if (_holdTarget != null) {
-      markers.add(
-        Marker(
-          markerId: const MarkerId('pending_report'),
-          position: _holdTarget!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-          infoWindow: const InfoWindow(title: 'Nowe zgłoszenie'),
-        ),
-      );
-    }
-
-    return markers;
   }
 
   double _hueFromColor(Color color) => HSLColor.fromColor(color).hue;
@@ -123,44 +117,93 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ReportMarkerSheet(report: report),
+      builder: (_) => ReportMarkerSheet(
+        report: report,
+        onOpenDetail: () {
+          Navigator.pop(context);
+          widget.onOpenReportDetail(report);
+        },
+      ),
     );
   }
 
-  void _onMapLongPress(LatLng position) {
+  Future<void> _onMapLongPress(LatLng position) async {
+    final controller = _mapController;
+    if (controller == null) return;
+
     _cancelHold();
+
+    final generation = ++_holdGeneration;
+    ScreenCoordinate screenCoord;
+    try {
+      screenCoord = await controller.getScreenCoordinate(position);
+    } catch (_) {
+      return;
+    }
+
+    if (!mounted || generation != _holdGeneration) return;
+
+    final center = Offset(
+      screenCoord.x.toDouble(),
+      screenCoord.y.toDouble(),
+    );
+
     setState(() {
       _holdTarget = position;
-      _markers = _buildMarkers(_reports);
+      _holdScreenCenter = center;
+      _listenPointerUp = false;
     });
 
     _holdController = AnimationController(
       vsync: this,
       duration: _holdDuration,
     )..addListener(() {
-        if (mounted) setState(() {});
+        if (mounted && generation == _holdGeneration) setState(() {});
       });
 
     _holdController!.addStatusListener((status) {
-      if (status == AnimationStatus.completed && mounted) {
-        final target = _holdTarget;
-        _cancelHold();
-        if (target != null) widget.onCreateReportAt(target);
-      }
+      if (status != AnimationStatus.completed) return;
+      if (!mounted || generation != _holdGeneration) return;
+      final target = _holdTarget;
+      _finishHold(success: true);
+      if (target != null) widget.onCreateReportAt(target);
     });
 
     _holdController!.forward();
+
+    // Po krótkim opóźnieniu: puszczenie palca = anulowanie (ignoruj pointer up z long pressa).
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted && generation == _holdGeneration && _isHolding) {
+        setState(() => _listenPointerUp = true);
+      }
+    });
   }
 
-  void _cancelHold() {
+  void _onPointerUp(PointerUpEvent event) {
+    if (_listenPointerUp && _isHolding) {
+      _finishHold(success: false);
+    }
+  }
+
+  void _finishHold({required bool success, bool bumpGeneration = true}) {
+    _holdController?.stop();
     _holdController?.dispose();
     _holdController = null;
-    if (_holdTarget != null) {
+    _holdTarget = null;
+    _holdScreenCenter = null;
+    _listenPointerUp = false;
+    if (!success && bumpGeneration) _holdGeneration++;
+    if (mounted) {
       setState(() {
-        _holdTarget = null;
         _markers = _buildMarkers(_reports);
       });
     }
+  }
+
+  void _cancelHold() {
+    if (!_isHolding && _holdTarget == null) return;
+    _holdGeneration++;
+    _finishHold(success: false, bumpGeneration: false);
   }
 
   Future<void> _fetchCurrentLocation() async {
@@ -202,39 +245,43 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: _currentPosition != null
-                ? CameraPosition(target: _currentPosition!, zoom: 15)
-                : _defaultPosition,
-            markers: _markers,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            onMapCreated: (controller) {
-              _mapController = controller;
-              if (_currentPosition != null) {
-                _moveCameraTo(_currentPosition!);
-              }
-            },
-            onLongPress: _onMapLongPress,
-            onTap: (_) {
-              if (_isHolding) _cancelHold();
-            },
-            onCameraMoveStarted: () {
-              if (_isHolding) _cancelHold();
-            },
-          ),
-          if (_isHolding)
-            MapHoldOverlay(
-              progress: _holdProgress,
-              onCancel: _cancelHold,
+      body: Listener(
+        onPointerUp: _onPointerUp,
+        onPointerCancel: (_) {
+          if (_listenPointerUp && _isHolding) _finishHold(success: false);
+        },
+        child: Stack(
+          children: [
+            GoogleMap(
+              initialCameraPosition: _currentPosition != null
+                  ? CameraPosition(target: _currentPosition!, zoom: 15)
+                  : _defaultPosition,
+              markers: _markers,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              onMapCreated: (controller) {
+                _mapController = controller;
+                if (_currentPosition != null) {
+                  _moveCameraTo(_currentPosition!);
+                }
+              },
+              onLongPress: _onMapLongPress,
+              onCameraMoveStarted: () {
+                if (_isHolding) _cancelHold();
+              },
             ),
-          if (_isLoading && _reports.isEmpty)
-            const AppLoading(message: 'Ładowanie mapy...'),
-          if (_error != null && _reports.isEmpty)
-            AppError(message: _error!, onRetry: _init),
-        ],
+            if (_isHolding && _holdScreenCenter != null)
+              MapHoldOverlay(
+                center: _holdScreenCenter!,
+                progress: _holdProgress,
+                holdSeconds: _holdSeconds,
+              ),
+            if (_isLoading && _reports.isEmpty)
+              const AppLoading(message: 'Ładowanie mapy...'),
+            if (_error != null && _reports.isEmpty)
+              AppError(message: _error!, onRetry: _init),
+          ],
+        ),
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),

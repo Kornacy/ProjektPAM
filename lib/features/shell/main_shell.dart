@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
 import 'package:city_issues/features/onboarding/onboarding_screen.dart';
 import 'package:city_issues/features/reports/screens/create_report_screen.dart';
 import 'package:city_issues/features/reports/screens/my_reports_screen.dart';
+import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/features/settings/screens/settings_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
 
@@ -15,7 +17,8 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  /// 0 mapa, 1 moje, 2 profil, 3 formularz (bez osobnej zakładki)
+  final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
   int _stackIndex = 0;
   int _lastMainTab = 0;
   LatLng? _createInitialLocation;
@@ -56,6 +59,18 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
+  void openReportDetail(GetReportsReports report) {
+    _shellNavigatorKey.currentState?.push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/report-detail'),
+        builder: (_) => ReportDetailScreen(
+          report: report,
+          onBack: () => _shellNavigatorKey.currentState?.pop(),
+        ),
+      ),
+    );
+  }
+
   void _openCreateReport({LatLng? initialLocation}) {
     if (_stackIndex != 3) _lastMainTab = _stackIndex;
     setState(() {
@@ -75,30 +90,48 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  Widget _buildMainTabs() {
+    return IndexedStack(
+      index: _stackIndex,
+      children: [
+        MapScreen(
+          key: _mapKey,
+          onCreateReportAt: (loc) => _openCreateReport(initialLocation: loc),
+          onOpenReportDetail: openReportDetail,
+        ),
+        MyReportsScreen(
+          key: _myReportsKey,
+          onOpenReportDetail: openReportDetail,
+        ),
+        SettingsScreen(onShowOnboarding: () => openOnboarding(replay: true)),
+        CreateReportScreen(
+          key: ValueKey(_createInitialLocation),
+          initialLocation: _createInitialLocation,
+          embedded: true,
+          onClose: _closeCreateReport,
+          onSubmitted: () => _closeCreateReport(submitted: true),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _stackIndex,
-        children: [
-          MapScreen(
-            key: _mapKey,
-            onCreateReportAt: (loc) => _openCreateReport(initialLocation: loc),
-          ),
-          MyReportsScreen(key: _myReportsKey),
-          SettingsScreen(onShowOnboarding: () => openOnboarding(replay: true)),
-          CreateReportScreen(
-            key: ValueKey(_createInitialLocation),
-            initialLocation: _createInitialLocation,
-            embedded: true,
-            onClose: _closeCreateReport,
-            onSubmitted: () => _closeCreateReport(submitted: true),
-          ),
-        ],
+      body: Navigator(
+        key: _shellNavigatorKey,
+        onGenerateRoute: (settings) {
+          return MaterialPageRoute(
+            builder: (_) => _buildMainTabs(),
+          );
+        },
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
         onDestinationSelected: (index) {
+          if (_shellNavigatorKey.currentState?.canPop() == true) {
+            _shellNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+          }
           if (index == 2) {
             _openCreateReport();
             return;

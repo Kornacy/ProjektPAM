@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
 class ReportMarkerSheet extends StatelessWidget {
-  const ReportMarkerSheet({super.key, required this.report});
+  const ReportMarkerSheet({
+    super.key,
+    required this.report,
+    required this.onOpenDetail,
+  });
 
   final GetReportsReports report;
+  final VoidCallback onOpenDetail;
 
   String? get _photoUrl {
     if (report.reportPhotos_on_report.isEmpty) return null;
@@ -16,9 +20,11 @@ class ReportMarkerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,15 +94,7 @@ class ReportMarkerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ReportDetailScreen(report: report),
-                  ),
-                );
-              },
+              onPressed: onOpenDetail,
               child: const Text('Zobacz szczegóły'),
             ),
           ],

@@ -3,73 +3,55 @@ import 'package:flutter/material.dart';
 class MapHoldOverlay extends StatelessWidget {
   const MapHoldOverlay({
     super.key,
+    required this.center,
     required this.progress,
-    required this.onCancel,
+    required this.holdSeconds,
   });
 
+  final Offset center;
   final double progress;
-  final VoidCallback onCancel;
+  final int holdSeconds;
+
+  static const double _size = 88;
 
   @override
   Widget build(BuildContext context) {
-    final remaining = ((1 - progress) * 5).ceil().clamp(0, 5);
+    final remaining = ((1 - progress) * holdSeconds).ceil().clamp(0, holdSeconds);
 
-    return Stack(
-      children: [
-        ModalBarrier(
-          color: Colors.black.withValues(alpha: 0.25),
-          dismissible: false,
-        ),
-        Center(
-          child: Material(
-            elevation: 12,
-            shape: const CircleBorder(),
-            color: Theme.of(context).colorScheme.surface,
-            child: SizedBox(
-              width: 140,
-              height: 140,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 8,
-                      strokeCap: StrokeCap.round,
-                    ),
+    return Positioned(
+      left: center.dx - _size / 2,
+      top: center.dy - _size / 2,
+      child: IgnorePointer(
+        child: Material(
+          elevation: 8,
+          shape: const CircleBorder(),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+          child: SizedBox(
+            width: _size,
+            height: _size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: _size - 12,
+                  height: _size - 12,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 6,
+                    strokeCap: StrokeCap.round,
                   ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$remaining',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                ),
+                Text(
+                  '$remaining',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        'sek.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-        Positioned(
-          top: MediaQuery.paddingOf(context).top + 8,
-          right: 16,
-          child: IconButton.filledTonal(
-            onPressed: onCancel,
-            icon: const Icon(Icons.close),
-            tooltip: 'Anuluj',
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

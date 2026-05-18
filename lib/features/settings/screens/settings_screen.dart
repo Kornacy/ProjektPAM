@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:city_issues/core/utils/scroll_padding.dart';
+import 'package:city_issues/features/settings/screens/about_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.onShowOnboarding});
+
+  final VoidCallback? onShowOnboarding;
 
   @override
   Widget build(BuildContext context) {
@@ -11,12 +15,12 @@ class SettingsScreen extends StatelessWidget {
     final prefs = AppPreferences.instance;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ustawienia')),
+      appBar: AppBar(title: const Text('Profil')),
       body: ListenableBuilder(
         listenable: prefs,
         builder: (context, _) {
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: ScrollPadding.list(context, includeNavBar: true),
             children: [
               Card(
                 child: ListTile(
@@ -29,6 +33,33 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   title: Text(user?.displayName ?? 'Użytkownik'),
                   subtitle: Text(user?.email ?? ''),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Pomoc', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.help_outline),
+                      title: const Text('Wprowadzenie do aplikacji'),
+                      subtitle: const Text('Przewodnik po funkcjach'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: onShowOnboarding,
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: const Text('O aplikacji'),
+                      subtitle: const Text('Cel, twórcy, wersja'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AboutScreen()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -97,15 +128,6 @@ class SettingsScreen extends StatelessWidget {
                                   : Colors.transparent,
                               width: 3,
                             ),
-                            boxShadow: selected
-                                ? [
-                                    BoxShadow(
-                                      color: color.withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
                           ),
                           child: selected
                               ? const Icon(Icons.check, color: Colors.white)

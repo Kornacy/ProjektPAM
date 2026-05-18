@@ -7,6 +7,8 @@ class AppPreferences extends ChangeNotifier {
 
   static const String _themeModeKey = 'theme_mode';
   static const String _accentColorKey = 'accent_color';
+  static const String _onboardingKey = 'onboarding_completed';
+  static const String _mapHoldTutorialKey = 'map_hold_tutorial_seen';
 
   static const Color defaultAccent = Color(0xFF1565C0);
 
@@ -22,10 +24,14 @@ class AppPreferences extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = defaultAccent;
   bool _loaded = false;
+  bool _onboardingCompleted = false;
+  bool _mapHoldTutorialSeen = false;
 
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
   bool get isLoaded => _loaded;
+  bool get hasCompletedOnboarding => _onboardingCompleted;
+  bool get hasSeenMapHoldTutorial => _mapHoldTutorialSeen;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,8 +43,33 @@ class AppPreferences extends ChangeNotifier {
     if (accentValue != null) {
       _accentColor = Color(accentValue);
     }
+    _onboardingCompleted = prefs.getBool(_onboardingKey) ?? false;
+    _mapHoldTutorialSeen = prefs.getBool(_mapHoldTutorialKey) ?? false;
     _loaded = true;
     notifyListeners();
+  }
+
+  Future<void> setOnboardingCompleted() async {
+    _onboardingCompleted = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingKey, true);
+  }
+
+  Future<void> setMapHoldTutorialSeen() async {
+    _mapHoldTutorialSeen = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_mapHoldTutorialKey, true);
+  }
+
+  Future<void> resetOnboardingFlags() async {
+    _onboardingCompleted = false;
+    _mapHoldTutorialSeen = false;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingKey, false);
+    await prefs.setBool(_mapHoldTutorialKey, false);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

@@ -6,7 +6,12 @@ import 'package:city_issues/services/storage_service.dart';
 class ReportService {
   ReportService._();
   static final ReportService instance = ReportService._();
-
+  
+  Future<List<GetReportsReports>> getReports() async {
+    final result = await DefaultConnector.instance.getReports().execute();
+    return result.data.reports;
+  }
+  
   Future<void> createReport({
     required String categoryId,
     String? description,

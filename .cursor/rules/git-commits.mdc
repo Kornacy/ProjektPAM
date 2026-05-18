@@ -1,0 +1,7 @@
+---
+description: Zasady commitów Git w tym projekcie
+alwaysApply: true
+---
+
+Nie dodawaj do commitów linii `Co-authored-by: Cursor`, `Made-with: Cursor` ani żadnej innej atrybucji Cursor.
+Commity mają zawierać wyłącznie wiadomość opisującą zmianę, bez trailerów od narzędzi AI.

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,6 +42,9 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
   List<GetCategoriesCategories> _categories = [];
   Set<String> _enabledCategoryIds = {};
 
+  /// Nakładka przechwytująca dotyk (działa na Androidzie, gdy mapa zjada gesty).
+  bool _touchCaptureMode = false;
+
   _HoldPhase _holdPhase = _HoldPhase.none;
   LatLng? _holdTarget;
   Offset? _holdScreenCenter;
@@ -62,7 +63,7 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
 
   bool get _isHolding => _holdPhase != _HoldPhase.none;
   double get _fillProgress => _fillController?.value ?? 0;
-  bool get _mapGesturesLocked => _isHolding;
+  bool get _mapGesturesLocked => _isHolding || _touchCaptureMode;
 
   @override
   void initState() {
@@ -178,35 +179,47 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
     );
   }
 
-  Future<LatLng?> _screenToLatLng(Offset local) async {
+  Future<Offset?> _latLngToScreenOffset(LatLng position) async {
     final controller = _mapController;
     if (controller == null) return null;
     try {
-      final latLng = await controller.getLatLng(
-        ScreenCoordinate(x: local.dx.round(), y: local.dy.round()),
-      );
-      return latLng;
+      final sc = await controller.getScreenCoordinate(position);
+      return Offset(sc.x.toDouble(), sc.y.toDouble());
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> _onLongPressStart(LongPressStartDetails details) async {
+  Future<LatLng?> _screenGlobalToLatLng(Offset global) async {
+    final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return null;
+    final local = box.globalToLocal(global);
+    final controller = _mapController;
+    if (controller == null) return null;
+    try {
+      return await controller.getLatLng(
+        ScreenCoordinate(x: local.dx.round(), y: local.dy.round()),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _startHoldAt(LatLng position, {Offset? screenCenter}) async {
     if (_isHolding) {
       _cancelHold();
       return;
     }
 
     final generation = ++_holdGeneration;
-    final local = details.localPosition;
-    final latLng = await _screenToLatLng(local);
+    final center = screenCenter ?? await _latLngToScreenOffset(position);
 
-    if (!mounted || generation != _holdGeneration || latLng == null) return;
+    if (!mounted || generation != _holdGeneration) return;
 
     setState(() {
       _holdPhase = _HoldPhase.waiting;
-      _holdScreenCenter = local;
-      _holdTarget = latLng;
+      _holdTarget = position;
+      _holdScreenCenter = center ?? Offset.zero;
     });
 
     _holdDelayTimer = Timer(_delayBeforeCircle, () {
@@ -227,21 +240,41 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         if (!mounted || generation != _holdGeneration) return;
         final target = _holdTarget;
         _finishHold(success: true);
-        if (target != null) widget.onCreateReportAt(target);
+        if (target != null) {
+          setState(() => _touchCaptureMode = false);
+          widget.onCreateReportAt(target);
+        }
       });
 
       _fillController!.forward();
     });
   }
 
-  void _onLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
-    if (!_isHolding) return;
-    setState(() => _holdScreenCenter = details.localPosition);
+  void _onMapLongPress(LatLng position) {
+    if (_touchCaptureMode) return;
+    _startHoldAt(position);
   }
 
-  void _onLongPressEnd(LongPressEndDetails details) {
-    if (_holdPhase == _HoldPhase.filling &&
-        (_fillController?.value ?? 0) >= 1.0) {
+  void _onPointerDown(PointerDownEvent event) {
+    if (!_touchCaptureMode || _isHolding) return;
+    _screenGlobalToLatLng(event.position).then((latLng) {
+      if (latLng == null || !mounted) return;
+      final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
+      final local = box?.globalToLocal(event.position);
+      _startHoldAt(latLng, screenCenter: local);
+    });
+  }
+
+  void _onPointerMove(PointerMoveEvent event) {
+    if (!_isHolding || _holdScreenCenter == null) return;
+    final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    setState(() => _holdScreenCenter = box.globalToLocal(event.position));
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    if (!_touchCaptureMode || !_isHolding) return;
+    if (_holdPhase == _HoldPhase.filling && (_fillController?.value ?? 0) >= 1.0) {
       return;
     }
     _cancelHold();
@@ -264,6 +297,21 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
     if (_holdPhase == _HoldPhase.none) return;
     _holdGeneration++;
     _finishHold(success: false);
+  }
+
+  void _toggleTouchCaptureMode() {
+    setState(() {
+      _touchCaptureMode = !_touchCaptureMode;
+      if (!_touchCaptureMode) _cancelHold();
+    });
+    if (_touchCaptureMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tryb zaznaczania: przytrzymaj palec na mapie'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Future<void> _fetchCurrentLocation() async {
@@ -297,6 +345,16 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         title: const Text('Mapa zgłoszeń'),
         actions: [
           IconButton(
+            icon: Icon(
+              _touchCaptureMode ? Icons.touch_app : Icons.add_location_alt_outlined,
+              color: _touchCaptureMode ? Theme.of(context).colorScheme.primary : null,
+            ),
+            tooltip: _touchCaptureMode
+                ? 'Wyłącz tryb zaznaczania'
+                : 'Włącz tryb zaznaczania (przytrzymaj palec)',
+            onPressed: _toggleTouchCaptureMode,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() => _isLoading = true);
@@ -305,73 +363,77 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
           ),
         ],
       ),
-      body: GestureDetector(
-        onLongPressStart: _onLongPressStart,
-        onLongPressEnd: _onLongPressEnd,
-        onLongPressMoveUpdate: _onLongPressMoveUpdate,
-        child: Stack(
-          key: _mapStackKey,
-          children: [
-            GoogleMap(
-              initialCameraPosition: _currentPosition != null
-                  ? CameraPosition(target: _currentPosition!, zoom: 15)
-                  : _defaultPosition,
-              markers: _markers,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              scrollGesturesEnabled: !_mapGesturesLocked,
-              zoomGesturesEnabled: !_mapGesturesLocked,
-              rotateGesturesEnabled: !_mapGesturesLocked,
-              tiltGesturesEnabled: !_mapGesturesLocked,
-              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                Factory<OneSequenceGestureRecognizer>(
-                  () => EagerGestureRecognizer(),
-                ),
-              },
-              onMapCreated: (controller) {
-                _mapController = controller;
-                if (_currentPosition != null) {
-                  _moveCameraTo(_currentPosition!);
-                }
-              },
-              onCameraMoveStarted: () {
-                if (_isHolding) _cancelHold();
-              },
+      body: Stack(
+        key: _mapStackKey,
+        children: [
+          GoogleMap(
+            initialCameraPosition: _currentPosition != null
+                ? CameraPosition(target: _currentPosition!, zoom: 15)
+                : _defaultPosition,
+            markers: _markers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            scrollGesturesEnabled: !_mapGesturesLocked,
+            zoomGesturesEnabled: !_mapGesturesLocked,
+            rotateGesturesEnabled: !_mapGesturesLocked,
+            tiltGesturesEnabled: !_mapGesturesLocked,
+            onMapCreated: (controller) {
+              _mapController = controller;
+              if (_currentPosition != null) {
+                _moveCameraTo(_currentPosition!);
+              }
+            },
+            onLongPress: _onMapLongPress,
+            onCameraMoveStarted: () {
+              if (_isHolding) _cancelHold();
+            },
+          ),
+          if (_touchCaptureMode)
+            Positioned.fill(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: _onPointerDown,
+                onPointerMove: _onPointerMove,
+                onPointerUp: _onPointerUp,
+                onPointerCancel: (_) {
+                  if (_touchCaptureMode && _isHolding) _cancelHold();
+                },
+                child: const SizedBox.expand(),
+              ),
             ),
-            if (_categories.isNotEmpty)
-              Positioned(
-                left: 8,
-                top: 8,
-                child: MapCategoryFilters(
-                  categories: _categories,
-                  enabledIds: _enabledCategoryIds,
-                  onToggle: _toggleCategory,
-                  onClearAll: () {
-                    setState(() => _enabledCategoryIds.clear());
-                    _applyFilters();
-                  },
-                  onSelectAll: () {
-                    setState(() {
-                      _enabledCategoryIds =
-                          _categories.map((c) => c.id).toSet();
-                    });
-                    _applyFilters();
-                  },
-                ),
+          if (_categories.isNotEmpty)
+            Positioned(
+              left: 8,
+              top: 8,
+              child: MapCategoryFilters(
+                categories: _categories,
+                enabledIds: _enabledCategoryIds,
+                onToggle: _toggleCategory,
+                onClearAll: () {
+                  setState(() => _enabledCategoryIds.clear());
+                  _applyFilters();
+                },
+                onSelectAll: () {
+                  setState(() {
+                    _enabledCategoryIds = _categories.map((c) => c.id).toSet();
+                  });
+                  _applyFilters();
+                },
               ),
-            if (_isHolding && _holdScreenCenter != null)
-              MapHoldOverlay(
-                center: _holdScreenCenter!,
-                progress: _fillProgress,
-                fillSeconds: _fillSeconds,
-                showWaiting: _holdPhase == _HoldPhase.waiting,
-              ),
-            if (_isLoading && _reports.isEmpty)
-              const AppLoading(message: 'Ładowanie mapy...'),
-            if (_error != null && _reports.isEmpty)
-              AppError(message: _error!, onRetry: _init),
-          ],
-        ),
+            ),
+          if (_isHolding && _holdScreenCenter != null)
+            MapHoldOverlay(
+              center: _holdScreenCenter!,
+              progress: _fillProgress,
+              fillSeconds: _fillSeconds,
+              showWaiting: _holdPhase == _HoldPhase.waiting,
+              onCancel: _cancelHold,
+            ),
+          if (_isLoading && _reports.isEmpty)
+            const AppLoading(message: 'Ładowanie mapy...'),
+          if (_error != null && _reports.isEmpty)
+            AppError(message: _error!, onRetry: _init),
+        ],
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),

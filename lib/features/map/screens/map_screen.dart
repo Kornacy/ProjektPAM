@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,32 +6,23 @@ import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/widgets/map_category_filters.dart';
-import 'package:city_issues/features/map/widgets/map_hold_overlay.dart';
-import 'package:city_issues/features/map/widgets/map_hold_tutorial_dialog.dart';
 import 'package:city_issues/features/map/widgets/report_marker_sheet.dart';
-import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/reports_repository.dart';
-
-enum _HoldPhase { none, waiting, filling }
 
 class MapScreen extends StatefulWidget {
   const MapScreen({
     super.key,
-    required this.onCreateReportAt,
     required this.onOpenReportDetail,
   });
 
-  final void Function(LatLng location) onCreateReportAt;
   final void Function(GetReportsReports report) onOpenReportDetail;
 
   @override
   State<MapScreen> createState() => MapScreenState();
 }
 
-class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixin {
-  final GlobalKey _mapStackKey = GlobalKey();
-
+class MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
   bool _isLoading = true;
@@ -42,42 +32,15 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
   List<GetCategoriesCategories> _categories = [];
   Set<String> _enabledCategoryIds = {};
 
-  /// Nakładka przechwytująca dotyk (działa na Androidzie, gdy mapa zjada gesty).
-  bool _touchCaptureMode = false;
-
-  _HoldPhase _holdPhase = _HoldPhase.none;
-  LatLng? _holdTarget;
-  Offset? _holdScreenCenter;
-  Timer? _holdDelayTimer;
-  AnimationController? _fillController;
-  int _holdGeneration = 0;
-
-  static const Duration _delayBeforeCircle = Duration(seconds: 1);
-  static const Duration _fillDuration = Duration(seconds: 3);
-  static const int _fillSeconds = 3;
-
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(52.2297, 21.0122),
     zoom: 13,
   );
 
-  bool get _isHolding => _holdPhase != _HoldPhase.none;
-  double get _fillProgress => _fillController?.value ?? 0;
-  bool get _mapGesturesLocked => _isHolding || _touchCaptureMode;
-
   @override
   void initState() {
     super.initState();
     _init();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowMapTutorial());
-  }
-
-  Future<void> _maybeShowMapTutorial() async {
-    if (!mounted) return;
-    final prefs = AppPreferences.instance;
-    if (!prefs.hasCompletedOnboarding || prefs.hasSeenMapHoldTutorial) return;
-    await showMapHoldTutorialDialog(context);
-    await prefs.setMapHoldTutorialSeen();
   }
 
   Future<void> refreshReports() => _loadReports();
@@ -165,7 +128,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
   double _hueFromColor(Color color) => HSLColor.fromColor(color).hue;
 
   void _showReportSheet(GetReportsReports report) {
-    if (_isHolding) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -177,141 +139,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         },
       ),
     );
-  }
-
-  Future<Offset?> _latLngToScreenOffset(LatLng position) async {
-    final controller = _mapController;
-    if (controller == null) return null;
-    try {
-      final sc = await controller.getScreenCoordinate(position);
-      return Offset(sc.x.toDouble(), sc.y.toDouble());
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<LatLng?> _screenGlobalToLatLng(Offset global) async {
-    final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return null;
-    final local = box.globalToLocal(global);
-    final controller = _mapController;
-    if (controller == null) return null;
-    try {
-      return await controller.getLatLng(
-        ScreenCoordinate(x: local.dx.round(), y: local.dy.round()),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> _startHoldAt(LatLng position, {Offset? screenCenter}) async {
-    if (_isHolding) {
-      _cancelHold();
-      return;
-    }
-
-    final generation = ++_holdGeneration;
-    final center = screenCenter ?? await _latLngToScreenOffset(position);
-
-    if (!mounted || generation != _holdGeneration) return;
-
-    setState(() {
-      _holdPhase = _HoldPhase.waiting;
-      _holdTarget = position;
-      _holdScreenCenter = center ?? Offset.zero;
-    });
-
-    _holdDelayTimer = Timer(_delayBeforeCircle, () {
-      if (!mounted || generation != _holdGeneration) return;
-      if (_holdPhase != _HoldPhase.waiting) return;
-
-      setState(() => _holdPhase = _HoldPhase.filling);
-
-      _fillController = AnimationController(
-        vsync: this,
-        duration: _fillDuration,
-      )..addListener(() {
-          if (mounted && generation == _holdGeneration) setState(() {});
-        });
-
-      _fillController!.addStatusListener((status) {
-        if (status != AnimationStatus.completed) return;
-        if (!mounted || generation != _holdGeneration) return;
-        final target = _holdTarget;
-        _finishHold(success: true);
-        if (target != null) {
-          setState(() => _touchCaptureMode = false);
-          widget.onCreateReportAt(target);
-        }
-      });
-
-      _fillController!.forward();
-    });
-  }
-
-  void _onMapLongPress(LatLng position) {
-    if (_touchCaptureMode) return;
-    _startHoldAt(position);
-  }
-
-  void _onPointerDown(PointerDownEvent event) {
-    if (!_touchCaptureMode || _isHolding) return;
-    _screenGlobalToLatLng(event.position).then((latLng) {
-      if (latLng == null || !mounted) return;
-      final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
-      final local = box?.globalToLocal(event.position);
-      _startHoldAt(latLng, screenCenter: local);
-    });
-  }
-
-  void _onPointerMove(PointerMoveEvent event) {
-    if (!_isHolding || _holdScreenCenter == null) return;
-    final box = _mapStackKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    setState(() => _holdScreenCenter = box.globalToLocal(event.position));
-  }
-
-  void _onPointerUp(PointerUpEvent event) {
-    if (!_touchCaptureMode || !_isHolding) return;
-    if (_holdPhase == _HoldPhase.filling && (_fillController?.value ?? 0) >= 1.0) {
-      return;
-    }
-    _cancelHold();
-  }
-
-  void _finishHold({required bool success}) {
-    _holdDelayTimer?.cancel();
-    _holdDelayTimer = null;
-    _fillController?.stop();
-    _fillController?.dispose();
-    _fillController = null;
-    _holdPhase = _HoldPhase.none;
-    _holdTarget = null;
-    _holdScreenCenter = null;
-    if (!success) _holdGeneration++;
-    if (mounted) _applyFilters();
-  }
-
-  void _cancelHold() {
-    if (_holdPhase == _HoldPhase.none) return;
-    _holdGeneration++;
-    _finishHold(success: false);
-  }
-
-  void _toggleTouchCaptureMode() {
-    setState(() {
-      _touchCaptureMode = !_touchCaptureMode;
-      if (!_touchCaptureMode) _cancelHold();
-    });
-    if (_touchCaptureMode) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tryb zaznaczania: przytrzymaj palec na mapie'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
   }
 
   Future<void> _fetchCurrentLocation() async {
@@ -345,16 +172,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         title: const Text('Mapa zgłoszeń'),
         actions: [
           IconButton(
-            icon: Icon(
-              _touchCaptureMode ? Icons.touch_app : Icons.add_location_alt_outlined,
-              color: _touchCaptureMode ? Theme.of(context).colorScheme.primary : null,
-            ),
-            tooltip: _touchCaptureMode
-                ? 'Wyłącz tryb zaznaczania'
-                : 'Włącz tryb zaznaczania (przytrzymaj palec)',
-            onPressed: _toggleTouchCaptureMode,
-          ),
-          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() => _isLoading = true);
@@ -364,7 +181,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
         ],
       ),
       body: Stack(
-        key: _mapStackKey,
         children: [
           GoogleMap(
             initialCameraPosition: _currentPosition != null
@@ -373,34 +189,13 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
             markers: _markers,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
-            scrollGesturesEnabled: !_mapGesturesLocked,
-            zoomGesturesEnabled: !_mapGesturesLocked,
-            rotateGesturesEnabled: !_mapGesturesLocked,
-            tiltGesturesEnabled: !_mapGesturesLocked,
             onMapCreated: (controller) {
               _mapController = controller;
               if (_currentPosition != null) {
                 _moveCameraTo(_currentPosition!);
               }
             },
-            onLongPress: _onMapLongPress,
-            onCameraMoveStarted: () {
-              if (_isHolding) _cancelHold();
-            },
           ),
-          if (_touchCaptureMode)
-            Positioned.fill(
-              child: Listener(
-                behavior: HitTestBehavior.translucent,
-                onPointerDown: _onPointerDown,
-                onPointerMove: _onPointerMove,
-                onPointerUp: _onPointerUp,
-                onPointerCancel: (_) {
-                  if (_touchCaptureMode && _isHolding) _cancelHold();
-                },
-                child: const SizedBox.expand(),
-              ),
-            ),
           if (_categories.isNotEmpty)
             Positioned(
               left: 8,
@@ -415,19 +210,12 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
                 },
                 onSelectAll: () {
                   setState(() {
-                    _enabledCategoryIds = _categories.map((c) => c.id).toSet();
+                    _enabledCategoryIds =
+                        _categories.map((c) => c.id).toSet();
                   });
                   _applyFilters();
                 },
               ),
-            ),
-          if (_isHolding && _holdScreenCenter != null)
-            MapHoldOverlay(
-              center: _holdScreenCenter!,
-              progress: _fillProgress,
-              fillSeconds: _fillSeconds,
-              showWaiting: _holdPhase == _HoldPhase.waiting,
-              onCancel: _cancelHold,
             ),
           if (_isLoading && _reports.isEmpty)
             const AppLoading(message: 'Ładowanie mapy...'),
@@ -448,8 +236,6 @@ class MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixi
 
   @override
   void dispose() {
-    _holdDelayTimer?.cancel();
-    _fillController?.dispose();
     _mapController?.dispose();
     super.dispose();
   }

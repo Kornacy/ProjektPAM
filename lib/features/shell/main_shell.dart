@@ -96,7 +96,6 @@ class _MainShellState extends State<MainShell> {
       children: [
         MapScreen(
           key: _mapKey,
-          onCreateReportAt: (loc) => _openCreateReport(initialLocation: loc),
           onOpenReportDetail: openReportDetail,
         ),
         MyReportsScreen(

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primary = Color(0xFF1565C0);
-  static const Color accent = Color(0xFF2E7D32);
+  static const Color secondaryAccent = Color(0xFF2E7D32);
 
-  static ThemeData get light {
+  static ThemeData theme({
+    required Brightness brightness,
+    required Color seedColor,
+  }) {
     final base = ThemeData(
       useMaterial3: true,
+      brightness: brightness,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primary,
-        primary: primary,
-        secondary: accent,
+        seedColor: seedColor,
+        brightness: brightness,
+        secondary: secondaryAccent,
       ),
     );
     return base.copyWith(
@@ -25,10 +28,19 @@ class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: primary,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: seedColor,
         foregroundColor: Colors.white,
+      ),
+      cardTheme: CardThemeData(
+        elevation: brightness == Brightness.dark ? 2 : 1,
       ),
     );
   }
+
+  static ThemeData light(Color seedColor) =>
+      theme(brightness: Brightness.light, seedColor: seedColor);
+
+  static ThemeData dark(Color seedColor) =>
+      theme(brightness: Brightness.dark, seedColor: seedColor);
 }

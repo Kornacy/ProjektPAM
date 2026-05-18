@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/material.dart';
 import 'package:city_issues/app/app.dart';
+import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
@@ -22,5 +23,6 @@ Future<void> main() async {
   }
 
   await AuthService.instance.initialize();
+  await AppPreferences.instance.load();
   runApp(const CityIssuesApp());
 }

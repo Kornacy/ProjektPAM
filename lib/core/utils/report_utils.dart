@@ -43,11 +43,15 @@ class ReportUtils {
       case 'road':
         return Icons.add_road;
       case 'light':
+      case 'lightbulb':
         return Icons.lightbulb_outline;
       case 'trash':
+      case 'delete':
         return Icons.delete_outline;
       case 'park':
         return Icons.park_outlined;
+      case 'help':
+        return Icons.help_outline;
       default:
         return Icons.report_problem_outlined;
     }

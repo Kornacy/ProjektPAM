@@ -31,5 +31,6 @@ query GetCategories @auth(level: PUBLIC) {
     id
     name
     iconName
+    pinColor
   }
 }

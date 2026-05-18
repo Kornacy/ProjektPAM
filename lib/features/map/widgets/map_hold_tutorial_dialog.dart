@@ -7,8 +7,9 @@ Future<void> showMapHoldTutorialDialog(BuildContext context) {
       icon: Icon(Icons.touch_app, color: Theme.of(ctx).colorScheme.primary, size: 40),
       title: const Text('Dodawanie zgłoszenia na mapie'),
       content: const Text(
-        'Dotknij wybrane miejsce na mapie. Przez 3 sekundy zobaczysz '
-        'okrągły wskaźnik — dotknij ponownie lub „Anuluj”, aby przerwać.',
+        'Przytrzymaj palec na mapie. Po 1 sekundzie pojawi się duże kółko '
+        'wokół palca — trzymaj dalej przez 3 sekundy aż się zapełni. '
+        'Puść wcześniej, aby anulować.',
       ),
       actions: [
         FilledButton(

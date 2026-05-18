@@ -19,6 +19,9 @@ query GetReports @auth(level: PUBLIC) {
     upvotes_on_report {
       id
     }
+    user {
+      id
+    }
   }
 }
 

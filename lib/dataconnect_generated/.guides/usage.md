@@ -6,6 +6,8 @@ DefaultConnector.instance.CreateReport(createReportVariables).execute();
 DefaultConnector.instance.AddPhoto(addPhotoVariables).execute();
 DefaultConnector.instance.UpvoteReport(upvoteReportVariables).execute();
 DefaultConnector.instance.GetReports().execute();
+DefaultConnector.instance.GetActiveReports().execute();
+DefaultConnector.instance.GetMyReports().execute();
 DefaultConnector.instance.GetCategories().execute();
 
 ```

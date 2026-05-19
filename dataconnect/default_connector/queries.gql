@@ -11,11 +11,53 @@ query GetReports @auth(level: PUBLIC) {
       iconName
       pinColor
     }
-    # Pobieramy od razu listę zdjęć dla każdego zgłoszenia!
     reportPhotos_on_report {
       imageUrl
     }
-    # Liczymy głosy poparcia
+    upvotes_on_report {
+      id
+    }
+  }
+}
+
+# Pobieranie niezakończonych zgłoszeń
+query GetActiveReports @auth(level: PUBLIC) {
+  reports(where: { status: { ne: "ZAKONCZONE" } }) {
+    id
+    latitude
+    longitude
+    description
+    status
+    category {
+      name
+      iconName
+      pinColor
+    }
+    reportPhotos_on_report {
+      imageUrl
+    }
+    upvotes_on_report {
+      id
+    }
+  }
+}
+
+# Pobieranie zgłoszeń zalogowanego użytkownika
+query GetMyReports @auth(level: USER) {
+  reports(where: { userId: { eq_expr: "auth.uid" } }) {
+    id
+    latitude
+    longitude
+    description
+    status
+    category {
+      name
+      iconName
+      pinColor
+    }
+    reportPhotos_on_report {
+      imageUrl
+    }
     upvotes_on_report {
       id
     }

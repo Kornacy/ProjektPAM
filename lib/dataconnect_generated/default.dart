@@ -13,6 +13,10 @@ part 'upvote_report.dart';
 
 part 'get_reports.dart';
 
+part 'get_active_reports.dart';
+
+part 'get_my_reports.dart';
+
 part 'get_categories.dart';
 
 
@@ -46,6 +50,16 @@ class DefaultConnector {
   
   GetReportsVariablesBuilder getReports () {
     return GetReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetActiveReportsVariablesBuilder getActiveReports () {
+    return GetActiveReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetMyReportsVariablesBuilder getMyReports () {
+    return GetMyReportsVariablesBuilder(dataConnect, );
   }
   
   

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/services/camera_service.dart';
+import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/report_service.dart';
 
 class CreateReportScreen extends StatefulWidget {
@@ -14,7 +16,6 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   final TextEditingController _descController = TextEditingController();
   final List<File> _photos = [];
 
-  // TODO: zastąpić listą kategorii pobraną z bazy
   String? _selectedCategoryId;
   final List<Map<String, String>> _categories = [
     {'id': 'DROGI', 'name': 'Drogi'},
@@ -25,6 +26,44 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
   bool _isLoading = false;
   String? _error;
+
+  GoogleMapController? _mapController;
+  LatLng? _selectedLocation;
+  Marker? _locationMarker;
+
+  static const LatLng _defaultLocation = LatLng(52.2297, 21.0122);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentLocation();
+  }
+
+  Future<void> _loadCurrentLocation() async {
+    try {
+      final position = await LocationService.instance.getCurrentLocation();
+      final location = LatLng(position.latitude, position.longitude);
+      _updateSelectedLocation(location);
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: location, zoom: 15),
+        ),
+      );
+    } catch (_) {
+      // Jeśli nie ma lokalizacji zostaje domyślna
+    }
+  }
+
+  void _updateSelectedLocation(LatLng location) {
+    setState(() {
+      _selectedLocation = location;
+      _locationMarker = Marker(
+        markerId: const MarkerId('selected'),
+        position: location,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      );
+    });
+  }
 
   Future<void> _addPhoto() async {
     final File? photo = await CameraService.instance.showPickerDialog(context);
@@ -51,6 +90,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             ? null
             : _descController.text.trim(),
         photos: _photos,
+        selectedLocation: _selectedLocation,
       );
 
       if (mounted) {
@@ -59,8 +99,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         );
         Navigator.pop(context);
       }
-    } catch (e, stackTrace) {
-      setState(() => _error = '$e\n$stackTrace');
+    } catch (e, s) {
+      setState(() => _error = '$e\n$s');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -104,6 +144,44 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Lokalizacja
+            Text('Lokalizacja', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            const Text(
+              'Kliknij na mapę żeby zmienić lokalizację zgłoszenia.',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 200,
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _selectedLocation ?? _defaultLocation,
+                    zoom: 15,
+                  ),
+                  markers: _locationMarker != null ? {_locationMarker!} : {},
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                    if (_selectedLocation != null) {
+                      controller.animateCamera(
+                        CameraUpdate.newCameraPosition(
+                          CameraPosition(
+                              target: _selectedLocation!, zoom: 15),
+                        ),
+                      );
+                    }
+                  },
+                  onTap: _updateSelectedLocation,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Zdjęcia
             Text('Zdjęcia', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -127,8 +205,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                         top: 4,
                         right: 4,
                         child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _photos.remove(photo)),
+                          onTap: () => setState(() => _photos.remove(photo)),
                           child: const CircleAvatar(
                             radius: 12,
                             backgroundColor: Colors.red,
@@ -157,8 +234,6 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             ),
             const SizedBox(height: 16),
 
-            // TODO: dodać wybór lokalizacji z mapy
-
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -186,6 +261,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   @override
   void dispose() {
     _descController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 }

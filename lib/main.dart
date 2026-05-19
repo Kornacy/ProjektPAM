@@ -10,8 +10,8 @@ import 'firebase_options.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 
 //TODO Zmienić na false dla produkcji
-const bool _useEmulator = true;
-const String _emulatorHost = '192.168.227.162';
+const bool _useEmulator = false;
+const String _emulatorHost = '192.168.0.42';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

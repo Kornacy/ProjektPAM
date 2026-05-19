@@ -10,7 +10,7 @@ import 'firebase_options.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 
 //TODO Zmienić na false dla produkcji
-const bool _useEmulator = true;
+const bool _useEmulator = false;
 const String _emulatorHost = '192.168.0.42';
 
 void main() async {

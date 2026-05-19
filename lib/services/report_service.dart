@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/storage_service.dart';
@@ -27,15 +28,25 @@ class ReportService {
     required String categoryId,
     String? description,
     required List<File> photos,
-    // TODO: dodać LatLng? selectedLocation gdy będzie wybór z mapy
+    LatLng? selectedLocation, // jeśli null — pobiera aktualną lokalizację GPS
   }) async {
-    final position = await LocationService.instance.getCurrentLocation();
+    double lat;
+    double lng;
+
+    if (selectedLocation != null) {
+      lat = selectedLocation.latitude;
+      lng = selectedLocation.longitude;
+    } else {
+      final position = await LocationService.instance.getCurrentLocation();
+      lat = position.latitude;
+      lng = position.longitude;
+    }
 
     final result = await DefaultConnector.instance
         .createReport(
           category: categoryId,
-          lat: position.latitude,
-          lng: position.longitude,
+          lat: lat,
+          lng: lng,
         )
         .desc(description)
         .execute();

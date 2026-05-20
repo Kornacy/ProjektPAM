@@ -10,7 +10,7 @@ import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 
 // TODO: ustaw false dla produkcji
-const bool _useEmulator = true;
+const bool _useEmulator = false;
 const String _emulatorHost = '192.168.1.13';
 
 class CityIssuesApp extends StatefulWidget {

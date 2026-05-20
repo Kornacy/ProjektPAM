@@ -10,13 +10,13 @@ class ReportsRepository {
     return result.data.reports;
   }
 
-  Future<List<GetReportsReports>> fetchMyReports() async {
-    final uid = AuthService.instance.currentUser?.uid;
-    if (uid == null) return [];
-    final all = await fetchAllReports();
-    return all.where((r) => r.user.id == uid).toList()
-      ..sort((a, b) => b.id.compareTo(a.id));
-  }
+  // Future<List<GetReportsReports>> fetchMyReports() async {
+  //   final uid = AuthService.instance.currentUser?.uid;
+  //   if (uid == null) return [];
+  //   final all = await fetchAllReports();
+  //   return all.where((r) => r.user.id == uid).toList()
+  //     ..sort((a, b) => b.id.compareTo(a.id));
+  // }
 
   Future<List<GetCategoriesCategories>> fetchCategories() async {
     final result = await DefaultConnector.instance.getCategories().execute();

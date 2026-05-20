@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/storage_service.dart';
+import 'package:city_issues/services/location_service.dart';
 
 class ReportService {
   ReportService._();
@@ -11,6 +12,11 @@ class ReportService {
     final result = await DefaultConnector.instance.getReports().execute();
     return result.data.reports;
   }
+  Future<List<GetCategoriesCategories>> getCategories() async{
+    final result = await DefaultConnector.instance.getCategories().execute();
+    return result.data.categories;
+  }
+  
 
   Future<List<GetActiveReportsReports>> getActiveReports() async {
     final result =

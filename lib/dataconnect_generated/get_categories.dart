@@ -21,13 +21,11 @@ class GetCategoriesCategories {
   final String id;
   final String name;
   final String iconName;
-  final String pinColor;
   GetCategoriesCategories.fromJson(dynamic json):
   
   id = nativeFromJson<String>(json['id']),
   name = nativeFromJson<String>(json['name']),
-  iconName = nativeFromJson<String>(json['iconName']),
-  pinColor = nativeFromJson<String>(json['pinColor']);
+  iconName = nativeFromJson<String>(json['iconName']);
   @override
   bool operator ==(Object other) {
     if(identical(this, other)) {
@@ -40,12 +38,11 @@ class GetCategoriesCategories {
     final GetCategoriesCategories otherTyped = other as GetCategoriesCategories;
     return id == otherTyped.id && 
     name == otherTyped.name && 
-    iconName == otherTyped.iconName && 
-    pinColor == otherTyped.pinColor;
+    iconName == otherTyped.iconName;
     
   }
   @override
-  int get hashCode => Object.hashAll([id.hashCode, name.hashCode, iconName.hashCode, pinColor.hashCode]);
+  int get hashCode => Object.hashAll([id.hashCode, name.hashCode, iconName.hashCode]);
   
 
   Map<String, dynamic> toJson() {
@@ -53,7 +50,6 @@ class GetCategoriesCategories {
     json['id'] = nativeToJson<String>(id);
     json['name'] = nativeToJson<String>(name);
     json['iconName'] = nativeToJson<String>(iconName);
-    json['pinColor'] = nativeToJson<String>(pinColor);
     return json;
   }
 
@@ -61,7 +57,6 @@ class GetCategoriesCategories {
     required this.id,
     required this.name,
     required this.iconName,
-    required this.pinColor,
   });
 }
 
@@ -100,4 +95,3 @@ class GetCategoriesData {
     required this.categories,
   });
 }
-

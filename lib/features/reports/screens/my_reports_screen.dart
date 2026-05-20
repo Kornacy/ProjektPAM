@@ -1,3 +1,4 @@
+import 'package:city_issues/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/core/widgets/app_empty.dart';
@@ -5,7 +6,7 @@ import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
-import 'package:city_issues/services/reports_repository.dart';
+//import 'package:city_issues/services/reports_repository.dart';
 
 class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key, required this.onOpenReportDetail});
@@ -35,8 +36,8 @@ class MyReportsScreenState extends State<MyReportsScreen> {
       _error = null;
     });
     try {
-      final reports = await ReportsRepository.instance.fetchMyReports();
-      if (mounted) setState(() => _reports = reports);
+      final reports = await ReportService.instance.getMyReports();
+      if (mounted) setState(() => _reports = reports.cast<GetReportsReports>());
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

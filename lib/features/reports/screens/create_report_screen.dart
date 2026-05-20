@@ -66,7 +66,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
   Future<void> _loadCategories() async {
     try {
-      final categories = await ReportsRepository.instance.fetchCategories();
+      final categories = await ReportService.instance.getCategories();
       if (mounted) {
         setState(() {
           _categories = categories;
@@ -129,8 +129,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             ? null
             : _descController.text.trim(),
         photos: _photos,
-        latitude: _location!.latitude,
-        longitude: _location!.longitude,
+        selectedLocation: _location
       );
 
       if (mounted) {

@@ -37,7 +37,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
     });
     try {
       final reports = await ReportService.instance.getMyReports();
-      if (mounted) setState(() => _reports = reports.cast<GetReportsReports>());
+      if (mounted) setState(() => _reports = reports);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

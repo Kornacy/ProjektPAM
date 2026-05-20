@@ -24,10 +24,27 @@ class ReportService {
     return result.data.reports;
   }
 
-  Future<List<GetMyReportsReports>> getMyReports() async {
-    final result = await DefaultConnector.instance.getMyReports().execute();
-    return result.data.reports;
-  }
+  Future<List<GetReportsReports>> getMyReports() async {
+  final result = await DefaultConnector.instance.getMyReports().execute();
+  return result.data.reports.map((r) => GetReportsReports(
+    id: r.id,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    description: r.description,
+    status: r.status,
+    category: GetReportsReportsCategory(
+      name: r.category.name,
+      iconName: r.category.iconName,
+      pinColor: r.category.pinColor,
+    ),
+    reportPhotos_on_report: r.reportPhotos_on_report.map((p) =>
+      GetReportsReportsReportPhotosOnReport(imageUrl: p.imageUrl)
+    ).toList(),
+    upvotes_on_report: r.upvotes_on_report.map((u) =>
+      GetReportsReportsUpvotesOnReport(id: u.id)
+    ).toList(),
+  )).toList();
+}
 
   Future<void> createReport({
     required String categoryId,

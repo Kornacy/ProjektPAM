@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/storage_service.dart';
 
 class ReportService {

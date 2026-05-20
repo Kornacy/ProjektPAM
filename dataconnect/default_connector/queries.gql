@@ -61,6 +61,9 @@ query GetMyReports @auth(level: USER) {
     upvotes_on_report {
       id
     }
+    user {
+      id
+    }
   }
 }
 
@@ -70,5 +73,6 @@ query GetCategories @auth(level: PUBLIC) {
     id
     name
     iconName
+    pinColor
   }
 }

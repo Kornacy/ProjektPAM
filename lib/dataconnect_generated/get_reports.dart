@@ -26,6 +26,7 @@ class GetReportsReports {
   final GetReportsReportsCategory category;
   final List<GetReportsReportsReportPhotosOnReport> reportPhotos_on_report;
   final List<GetReportsReportsUpvotesOnReport> upvotes_on_report;
+  final GetReportsReportsUser user;
   GetReportsReports.fromJson(dynamic json):
   
   id = nativeFromJson<String>(json['id']),
@@ -39,7 +40,8 @@ class GetReportsReports {
         .toList(),
   upvotes_on_report = (json['upvotes_on_report'] as List<dynamic>)
         .map((e) => GetReportsReportsUpvotesOnReport.fromJson(e))
-        .toList();
+        .toList(),
+  user = GetReportsReportsUser.fromJson(json['user']);
   @override
   bool operator ==(Object other) {
     if(identical(this, other)) {
@@ -57,11 +59,12 @@ class GetReportsReports {
     status == otherTyped.status && 
     category == otherTyped.category && 
     reportPhotos_on_report == otherTyped.reportPhotos_on_report && 
-    upvotes_on_report == otherTyped.upvotes_on_report;
+    upvotes_on_report == otherTyped.upvotes_on_report && 
+    user == otherTyped.user;
     
   }
   @override
-  int get hashCode => Object.hashAll([id.hashCode, latitude.hashCode, longitude.hashCode, description.hashCode, status.hashCode, category.hashCode, reportPhotos_on_report.hashCode, upvotes_on_report.hashCode]);
+  int get hashCode => Object.hashAll([id.hashCode, latitude.hashCode, longitude.hashCode, description.hashCode, status.hashCode, category.hashCode, reportPhotos_on_report.hashCode, upvotes_on_report.hashCode, user.hashCode]);
   
 
   Map<String, dynamic> toJson() {
@@ -76,6 +79,7 @@ class GetReportsReports {
     json['category'] = category.toJson();
     json['reportPhotos_on_report'] = reportPhotos_on_report.map((e) => e.toJson()).toList();
     json['upvotes_on_report'] = upvotes_on_report.map((e) => e.toJson()).toList();
+    json['user'] = user.toJson();
     return json;
   }
 
@@ -88,6 +92,7 @@ class GetReportsReports {
     required this.category,
     required this.reportPhotos_on_report,
     required this.upvotes_on_report,
+    required this.user,
   });
 }
 
@@ -199,6 +204,40 @@ class GetReportsReportsUpvotesOnReport {
   }
 
   GetReportsReportsUpvotesOnReport({
+    required this.id,
+  });
+}
+
+@immutable
+class GetReportsReportsUser {
+  final String id;
+  GetReportsReportsUser.fromJson(dynamic json):
+  
+  id = nativeFromJson<String>(json['id']);
+  @override
+  bool operator ==(Object other) {
+    if(identical(this, other)) {
+      return true;
+    }
+    if(other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    final GetReportsReportsUser otherTyped = other as GetReportsReportsUser;
+    return id == otherTyped.id;
+    
+  }
+  @override
+  int get hashCode => id.hashCode;
+  
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> json = {};
+    json['id'] = nativeToJson<String>(id);
+    return json;
+  }
+
+  GetReportsReportsUser({
     required this.id,
   });
 }

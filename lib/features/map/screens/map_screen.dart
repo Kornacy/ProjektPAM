@@ -8,7 +8,6 @@ import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/widgets/map_category_filters.dart';
 import 'package:city_issues/features/map/widgets/report_marker_sheet.dart';
 import 'package:city_issues/services/location_service.dart';
-import 'package:city_issues/services/reports_repository.dart';
 import 'package:city_issues/services/report_service.dart';
 
 class MapScreen extends StatefulWidget {
@@ -52,7 +51,7 @@ class MapScreenState extends State<MapScreen> {
 
   Future<void> _loadCategories() async {
     try {
-      final categories = await ReportsRepository.instance.fetchCategories();
+      final categories = await ReportService.instance.getCategories();
       if (!mounted) return;
       setState(() {
         _categories = categories;
@@ -197,27 +196,27 @@ class MapScreenState extends State<MapScreen> {
               }
             },
           ),
-          // if (_categories.isNotEmpty)
-          //   Positioned(
-          //     left: 8,
-          //     top: 8,
-          //     child: MapCategoryFilters(
-          //       categories: _categories,
-          //       enabledIds: _enabledCategoryIds,
-          //       onToggle: _toggleCategory,
-          //       onClearAll: () {
-          //         setState(() => _enabledCategoryIds.clear());
-          //         _applyFilters();
-          //       },
-          //       onSelectAll: () {
-          //         setState(() {
-          //           _enabledCategoryIds =
-          //               _categories.map((c) => c.id).toSet();
-          //         });
-          //         _applyFilters();
-          //       },
-          //     ),
-          //   ),
+          if (_categories.isNotEmpty)
+            Positioned(
+              left: 8,
+              top: 8,
+              child: MapCategoryFilters(
+                categories: _categories,
+                enabledIds: _enabledCategoryIds,
+                onToggle: _toggleCategory,
+                onClearAll: () {
+                  setState(() => _enabledCategoryIds.clear());
+                  _applyFilters();
+                },
+                onSelectAll: () {
+                  setState(() {
+                    _enabledCategoryIds =
+                        _categories.map((c) => c.id).toSet();
+                  });
+                  _applyFilters();
+                },
+              ),
+            ),
           if (_isLoading && _reports.isEmpty)
             const AppLoading(message: 'Ładowanie mapy...'),
           if (_error != null && _reports.isEmpty)

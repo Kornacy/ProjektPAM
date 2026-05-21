@@ -23,6 +23,9 @@ class ReportService {
         await DefaultConnector.instance.getActiveReports().execute();
     return result.data.reports;
   }
+    Future<void> upvoteReport(String reportId) async {
+    await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+  }
 
   Future<List<GetReportsReports>> getMyReports() async {
   final result = await DefaultConnector.instance.getMyReports().execute();

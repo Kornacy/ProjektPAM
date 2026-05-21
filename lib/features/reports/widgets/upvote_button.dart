@@ -1,5 +1,5 @@
+import 'package:city_issues/services/report_service.dart';
 import 'package:flutter/material.dart';
-import 'package:city_issues/services/reports_repository.dart';
 
 class UpvoteButton extends StatefulWidget {
   const UpvoteButton({
@@ -24,7 +24,7 @@ class _UpvoteButtonState extends State<UpvoteButton> {
     if (_isLoading || _hasUpvoted) return;
     setState(() => _isLoading = true);
     try {
-      await ReportsRepository.instance.upvoteReport(widget.reportId);
+      await ReportService.instance.upvoteReport(widget.reportId);
       if (mounted) {
         setState(() {
           _count++;

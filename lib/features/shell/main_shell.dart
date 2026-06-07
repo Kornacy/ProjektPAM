@@ -27,6 +27,7 @@ class _MainShellState extends State<MainShell> {
 
   int _stackIndex = 0;
   int _lastMainTab = 0;
+  int _createReportSession = 0;
   LatLng? _createInitialLocation;
 
   final _mapKey = GlobalKey<MapScreenState>();
@@ -141,6 +142,7 @@ class _MainShellState extends State<MainShell> {
     if (_stackIndex != 3) _lastMainTab = _stackIndex;
     setState(() {
       _createInitialLocation = initialLocation;
+      _createReportSession++;
       _stackIndex = 3;
     });
   }
@@ -214,7 +216,7 @@ class _MainShellState extends State<MainShell> {
           scrollController: _settingsScrollController,
         ),
         CreateReportScreen(
-          key: ValueKey(_createInitialLocation),
+          key: ValueKey(_createReportSession),
           initialLocation: _createInitialLocation,
           embedded: true,
           onClose: _closeCreateReport,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,7 +22,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       await AuthService.instance.signInWithGoogle();
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (!mounted) return;
+      final message = UserFacingError.googleSignIn(e);
+      setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

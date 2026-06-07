@@ -2,14 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:city_issues/core/utils/report_utils.dart';
+import 'package:city_issues/core/utils/scroll_padding.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
+import 'package:city_issues/core/widgets/form_error_banner.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/camera_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/report_service.dart';
-import 'package:city_issues/core/utils/scroll_padding.dart';
-
 
 class CreateReportScreen extends StatefulWidget {
   const CreateReportScreen({
@@ -77,7 +79,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       if (mounted) {
         setState(() {
           _categoriesLoading = false;
-          _submitError = 'Nie udało się pobrać kategorii: $e';
+          _submitError = UserFacingError.loadCategories(e);
         });
       }
     }
@@ -100,7 +102,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _locationError = e.toString();
+          _locationError = UserFacingError.location(e);
           _locationLoading = false;
         });
       }
@@ -143,7 +145,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         }
       }
     } catch (e) {
-      setState(() => _submitError = e.toString());
+      setState(() => _submitError = UserFacingError.submitReport(e));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -170,6 +172,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           leading: widget.embedded
               ? IconButton(
                   icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Wróć',
                   onPressed: _handleBack,
                 )
               : null,
@@ -183,12 +186,23 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Kategoria *'),
+                    isExpanded: true,
                     value: _selectedCategoryId,
                     items: _categories
                         .map(
                           (c) => DropdownMenuItem(
                             value: c.id,
-                            child: Text(c.name),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  ReportUtils.categoryIcon(c.iconName),
+                                  size: 20,
+                                  color: ReportUtils.parsePinColor(c.pinColor),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(child: Text(c.name)),
+                              ],
+                            ),
                           ),
                         )
                         .toList(),
@@ -201,24 +215,36 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Opis problemu',
                       alignLabelWithHint: true,
+                      hintText: 'Opisz krótko, na czym polega problem…',
                     ),
                     maxLines: 3,
                     maxLength: 500,
                   ),
                   const SizedBox(height: 8),
                   Text('Zdjęcie *', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Dodaj co najmniej jedno zdjęcie problemu.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                  ),
                   const SizedBox(height: 8),
                   _buildPhotos(),
                   const SizedBox(height: 16),
                   Text('Lokalizacja *', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Lokalizacja jest pobierana z GPS. Możesz ją odświeżyć poniżej.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                  ),
                   const SizedBox(height: 8),
                   _buildLocationSection(),
                   if (_submitError != null) ...[
                     const SizedBox(height: 12),
-                    Text(
-                      _submitError!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
-                    ),
+                    FormErrorBanner(message: _submitError!),
                   ],
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -271,10 +297,16 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.add_a_photo, color: Colors.grey, size: 32),
+            child: Icon(
+              Icons.add_a_photo,
+              color: Theme.of(context).colorScheme.outline,
+              size: 32,
+            ),
           ),
         ),
       ],
@@ -319,7 +351,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         ),
         TextButton.icon(
           onPressed: _loadLocation,
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Icons.my_location),
           label: const Text('Odśwież lokalizację'),
         ),
       ],

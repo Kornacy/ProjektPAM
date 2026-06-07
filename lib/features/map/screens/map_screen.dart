@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
@@ -84,7 +85,7 @@ class MapScreenState extends State<MapScreen> {
       });
       _applyFilters();
     } catch (e) {
-      if (mounted) setState(() => _error = 'Nie udało się załadować zgłoszeń: $e');
+      if (mounted) setState(() => _error = UserFacingError.loadReports(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -158,7 +159,7 @@ class MapScreenState extends State<MapScreen> {
       _moveCameraTo(newPosition);
     } catch (e) {
       if (mounted && _currentPosition == null) {
-        setState(() => _error = e.toString());
+        setState(() => _error = UserFacingError.location(e));
       }
     }
   }
@@ -177,6 +178,7 @@ class MapScreenState extends State<MapScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Odśwież zgłoszenia',
             onPressed: () {
               setState(() => _isLoading = true);
               _loadReports();

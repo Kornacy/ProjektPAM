@@ -58,6 +58,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.4
 
+# path_provider_foundation 2.6+ builds native assets (objective_c) and requires
+# MSVC on Windows even for `flutter test`. Pin until C++ build tools are set up.
+dependency_overrides:
+  path_provider_foundation: 2.5.1
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

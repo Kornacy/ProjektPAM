@@ -1,6 +1,6 @@
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:city_issues/core/utils/user_facing_error.dart';
 
 void main() {
   group('UserFacingError', () {
@@ -24,7 +24,9 @@ void main() {
 
     test('uses fallback for unknown errors', () {
       expect(
-        UserFacingError.submitReport(Exception('InternalServerError')),
+        UserFacingError.submitReport(
+          Exception('unhandled exception: internal server failure'),
+        ),
         'Nie udało się wysłać zgłoszenia.',
       );
     });

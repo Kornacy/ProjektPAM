@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
@@ -155,6 +156,44 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  void _handleSystemBack() {
+    if (_tourVisible) {
+      _finishTour();
+      return;
+    }
+
+    if (_mapKey.currentState?.closeReportSheetIfOpen() ?? false) {
+      return;
+    }
+
+    final shell = _shellNavigatorKey.currentState;
+    if (shell != null && shell.canPop()) {
+      shell.pop();
+      return;
+    }
+
+    final rootNav = Navigator.of(context, rootNavigator: true);
+    if (rootNav.canPop()) {
+      rootNav.pop();
+      return;
+    }
+
+    if (_stackIndex == 3) {
+      _closeCreateReport();
+      return;
+    }
+
+    if (_stackIndex != 0) {
+      setState(() {
+        _stackIndex = 0;
+        _createInitialLocation = null;
+      });
+      return;
+    }
+
+    SystemNavigator.pop();
+  }
+
   Widget _buildMainTabs() {
     return IndexedStack(
       index: _stackIndex,
@@ -187,9 +226,15 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleSystemBack();
+      },
+      child: Stack(
+        children: [
+          Scaffold(
           body: Navigator(
             key: _shellNavigatorKey,
             onGenerateRoute: (settings) {
@@ -254,6 +299,7 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
       ],
+    ),
     );
   }
 }

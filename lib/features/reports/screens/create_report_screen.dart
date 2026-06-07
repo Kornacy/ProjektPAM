@@ -161,23 +161,18 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !widget.embedded,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && widget.embedded) _handleBack();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Nowe zgłoszenie'),
-          leading: widget.embedded
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  tooltip: 'Wróć',
-                  onPressed: _handleBack,
-                )
-              : null,
-        ),
-        body: _categoriesLoading
+    final scaffold = Scaffold(
+      appBar: AppBar(
+        title: const Text('Nowe zgłoszenie'),
+        leading: widget.embedded
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Wróć',
+                onPressed: _handleBack,
+              )
+            : null,
+      ),
+      body: _categoriesLoading
           ? const AppLoading(message: 'Ładowanie formularza...')
           : SingleChildScrollView(
               padding: ScrollPadding.list(context, includeNavBar: widget.embedded),
@@ -260,8 +255,9 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                 ],
               ),
             ),
-      ),
     );
+
+    return scaffold;
   }
 
   Widget _buildPhotos() {

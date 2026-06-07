@@ -36,6 +36,7 @@ class MapScreenState extends State<MapScreen> {
   List<GetReportsReports> _reports = [];
   List<GetCategoriesCategories> _categories = [];
   Set<String> _enabledCategoryIds = {};
+  bool _reportSheetOpen = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(52.2297, 21.0122),
@@ -132,18 +133,29 @@ class MapScreenState extends State<MapScreen> {
 
   double _hueFromColor(Color color) => HSLColor.fromColor(color).hue;
 
+  /// Closes the marker bottom sheet if open. Returns true when a pop was attempted.
+  bool closeReportSheetIfOpen() {
+    if (!_reportSheetOpen) return false;
+    Navigator.of(context, rootNavigator: true).pop();
+    return true;
+  }
+
   void _showReportSheet(GetReportsReports report) {
+    setState(() => _reportSheetOpen = true);
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (_) => ReportMarkerSheet(
         report: report,
         onOpenDetail: () {
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
           widget.onOpenReportDetail(report);
         },
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _reportSheetOpen = false);
+    });
   }
 
   Future<void> _fetchCurrentLocation() async {

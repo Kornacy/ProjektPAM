@@ -24,12 +24,26 @@ class ReportDetailScreen extends StatelessWidget {
     final photoUrls = photos.map((p) => p.imageUrl).toList();
     final upvoteCount = report.upvotes_on_report.length;
 
-    return Scaffold(
+    void goBack() {
+      if (onBack != null) {
+        onBack!();
+      } else {
+        Navigator.of(context).pop();
+      }
+    }
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        goBack();
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Szczegóły zgłoszenia'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: onBack ?? () => Navigator.maybePop(context),
+          onPressed: goBack,
         ),
       ),
       body: SafeArea(
@@ -129,6 +143,7 @@ class ReportDetailScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -23,7 +23,17 @@ class AuthService {
     _googleSignIn.authenticationEvents
         .listen(_handleAuthenticationEvent)
         .onError(_handleAuthenticationError);
-    _googleSignIn.attemptLightweightAuthentication();
+
+    // Firebase utrzymuje sesję — nie uruchamiaj lekkiego logowania Google,
+    // bo na Androidzie może to wyświetlić arkusz wyboru konta przy każdym starcie.
+    if (_firebaseAuth.currentUser == null) {
+      _googleSignIn.attemptLightweightAuthentication();
+    }
+  }
+
+  /// Czeka na pierwszą emisję stanu auth (przywrócenie sesji z pamięci).
+  Future<void> waitForAuthReady() {
+    return _firebaseAuth.authStateChanges().first;
   }
 
   Future<void> signInWithEmailPassword({
@@ -95,7 +105,14 @@ class AuthService {
     if (event is GoogleSignInAuthenticationEventSignIn) {
       await _signInToFirebase(event.user);
     } else if (event is GoogleSignInAuthenticationEventSignOut) {
-      await _firebaseAuth.signOut();
+      final user = _firebaseAuth.currentUser;
+      final signedInWithGoogle = user?.providerData.any(
+            (info) => info.providerId == 'google.com',
+          ) ??
+          false;
+      if (signedInWithGoogle) {
+        await _firebaseAuth.signOut();
+      }
     }
   }
 

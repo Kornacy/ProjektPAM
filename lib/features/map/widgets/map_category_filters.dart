@@ -73,7 +73,8 @@ class _MapCategoryFiltersState extends State<MapCategoryFilters> {
                   ),
                   const Divider(height: 1, indent: 10, endIndent: 10),
                   ...widget.categories.map((category) {
-                    final accent = ReportUtils.parsePinColor("#122132"); //TODO: Pobrać kolor z bazy
+                    final accent =
+                        ReportUtils.parsePinColor(category.pinColor);
                     final enabled = widget.enabledIds.contains(category.id);
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:city_issues/services/app_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _pages = [
     _OnboardingPage(
-      icon: Icons.location_city,
+      showLogo: true,
       title: 'Witaj w City Issues',
       body:
           'Zgłaszaj problemy miejskie w kilka chwil — dziury w drodze, '
@@ -142,12 +143,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 class _OnboardingPage extends StatelessWidget {
   const _OnboardingPage({
-    required this.icon,
+    this.icon,
+    this.showLogo = false,
     required this.title,
     required this.body,
-  });
+  }) : assert(showLogo || icon != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final bool showLogo;
   final String title;
   final String body;
 
@@ -158,7 +161,14 @@ class _OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 96, color: Theme.of(context).colorScheme.primary),
+          if (showLogo)
+            SvgPicture.asset(
+              'assets/images/app_logo.svg',
+              width: 120,
+              height: 120,
+            )
+          else
+            Icon(icon, size: 96, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 32),
           Text(
             title,

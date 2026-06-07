@@ -14,9 +14,13 @@ class MapScreen extends StatefulWidget {
   const MapScreen({
     super.key,
     required this.onOpenReportDetail,
+    this.filtersKey,
+    this.locationFabKey,
   });
 
   final void Function(GetReportsReports report) onOpenReportDetail;
+  final GlobalKey? filtersKey;
+  final GlobalKey? locationFabKey;
 
   @override
   State<MapScreen> createState() => MapScreenState();
@@ -200,21 +204,24 @@ class MapScreenState extends State<MapScreen> {
             Positioned(
               left: 8,
               top: 8,
-              child: MapCategoryFilters(
-                categories: _categories,
-                enabledIds: _enabledCategoryIds,
-                onToggle: _toggleCategory,
-                onClearAll: () {
-                  setState(() => _enabledCategoryIds.clear());
-                  _applyFilters();
-                },
-                onSelectAll: () {
-                  setState(() {
-                    _enabledCategoryIds =
-                        _categories.map((c) => c.id).toSet();
-                  });
-                  _applyFilters();
-                },
+              child: KeyedSubtree(
+                key: widget.filtersKey,
+                child: MapCategoryFilters(
+                  categories: _categories,
+                  enabledIds: _enabledCategoryIds,
+                  onToggle: _toggleCategory,
+                  onClearAll: () {
+                    setState(() => _enabledCategoryIds.clear());
+                    _applyFilters();
+                  },
+                  onSelectAll: () {
+                    setState(() {
+                      _enabledCategoryIds =
+                          _categories.map((c) => c.id).toSet();
+                    });
+                    _applyFilters();
+                  },
+                ),
               ),
             ),
           if (_isLoading && _reports.isEmpty)
@@ -224,6 +231,7 @@ class MapScreenState extends State<MapScreen> {
         ],
       ),
       floatingActionButton: Padding(
+        key: widget.locationFabKey,
         padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
         child: FloatingActionButton(
           onPressed: _fetchCurrentLocation,

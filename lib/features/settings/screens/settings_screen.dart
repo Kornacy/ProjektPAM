@@ -5,9 +5,16 @@ import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, this.onShowOnboarding});
+  const SettingsScreen({
+    super.key,
+    this.onShowOnboarding,
+    this.onboardingHelpKey,
+    this.scrollController,
+  });
 
   final VoidCallback? onShowOnboarding;
+  final GlobalKey? onboardingHelpKey;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +27,7 @@ class SettingsScreen extends StatelessWidget {
         listenable: prefs,
         builder: (context, _) {
           return ListView(
+            controller: scrollController,
             padding: ScrollPadding.list(context, includeNavBar: true),
             children: [
               Card(
@@ -42,6 +50,7 @@ class SettingsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     ListTile(
+                      key: onboardingHelpKey,
                       leading: const Icon(Icons.help_outline),
                       title: const Text('Wprowadzenie do aplikacji'),
                       subtitle: const Text('Przewodnik po funkcjach'),

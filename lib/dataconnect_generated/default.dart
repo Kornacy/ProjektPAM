@@ -11,6 +11,8 @@ part 'add_photo.dart';
 
 part 'upvote_report.dart';
 
+part 'remove_upvote.dart';
+
 part 'add_comment.dart';
 
 part 'edit_comment.dart';
@@ -53,6 +55,11 @@ class DefaultConnector {
   
   UpvoteReportVariablesBuilder upvoteReport ({required String reportId, }) {
     return UpvoteReportVariablesBuilder(dataConnect, reportId: reportId,);
+  }
+  
+  
+  RemoveUpvoteVariablesBuilder removeUpvote ({required String reportId, }) {
+    return RemoveUpvoteVariablesBuilder(dataConnect, reportId: reportId,);
   }
   
   

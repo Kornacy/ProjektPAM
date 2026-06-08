@@ -14,18 +14,20 @@ class ReportDetailScreen extends StatelessWidget {
     required this.report,
     this.onBack,
     this.commentsSection,
+    this.upvoteButton,
   });
 
   final GetReportsReports report;
   final VoidCallback? onBack;
   final Widget? commentsSection;
+  final Widget? upvoteButton;
 
   @override
   Widget build(BuildContext context) {
     final position = LatLng(report.latitude, report.longitude);
     final photos = report.reportPhotos_on_report;
     final photoUrls = photos.map((p) => p.imageUrl).toList();
-    final upvoteCount = report.upvotes_on_report.length;
+    final upvoteCount = ReportUtils.upvoteCount(report.upvotes_on_report);
 
     void goBack() {
       if (onBack != null) {
@@ -85,6 +87,7 @@ class ReportDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(ReportUtils.categoryIcon(report.category.iconName)),
                         const SizedBox(width: 8),
@@ -105,12 +108,18 @@ class ReportDetailScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    UpvoteButton(
-                      reportId: report.id,
-                      initialCount: upvoteCount,
-                    ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    upvoteButton ??
+                        UpvoteButton(
+                          reportId: report.id,
+                          initialCount: upvoteCount,
+                          isSignedIn: AuthService.instance.isSignedIn,
+                          initialHasUpvoted: ReportUtils.userHasUpvoted(
+                            report.upvotes_on_report,
+                            AuthService.instance.currentUser?.uid,
+                          ),
+                        ),
+                    const SizedBox(height: 20),
                     Text('Opis', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(report.description ?? 'Brak opisu'),

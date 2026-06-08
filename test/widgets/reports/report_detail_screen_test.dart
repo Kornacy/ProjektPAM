@@ -1,4 +1,5 @@
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
+import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +14,11 @@ void main() {
         ReportDetailScreen(
           report: TestFixtures.sampleReport,
           commentsSection: const SizedBox.shrink(),
+          upvoteButton: const UpvoteButton(
+            reportId: 'report-1',
+            initialCount: 2,
+            isSignedIn: true,
+          ), // renders "2 osoby wspierają"
         ),
         surfaceSize: const Size(400, 900),
       );
@@ -21,7 +27,7 @@ void main() {
       expect(find.text('Drogi'), findsWidgets);
       expect(find.text('Nowe'), findsOneWidget);
       expect(find.textContaining('Dziura na chodniku'), findsOneWidget);
-      expect(find.text('Podbij (2)'), findsOneWidget);
+      expect(find.text('2 osoby wspierają'), findsOneWidget);
     });
 
     testWidgets('calls onBack from app bar leading button', (tester) async {
@@ -33,6 +39,7 @@ void main() {
           report: TestFixtures.sampleReport,
           onBack: () => backPressed = true,
           commentsSection: const SizedBox.shrink(),
+          upvoteButton: const SizedBox.shrink(),
         ),
       );
 
@@ -51,6 +58,7 @@ void main() {
           report: TestFixtures.sampleReport,
           onBack: () => backPressed = true,
           commentsSection: const SizedBox.shrink(),
+          upvoteButton: const SizedBox.shrink(),
         ),
       );
 

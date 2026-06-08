@@ -1,3 +1,4 @@
+import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:flutter/material.dart';
 
 class ReportUtils {
@@ -36,6 +37,20 @@ class ReportUtils {
       return Color(int.parse('FF$hex', radix: 16));
     }
     return Colors.red;
+  }
+
+  static int upvoteCount(List<GetReportsReportsUpvotesOnReport> upvotes) {
+    return upvotes.where((upvote) => upvote.user.id.isNotEmpty).length;
+  }
+
+  static bool userHasUpvoted(
+    List<GetReportsReportsUpvotesOnReport> upvotes,
+    String? userId,
+  ) {
+    if (userId == null) return false;
+    return upvotes.any(
+      (upvote) => upvote.user.id.isNotEmpty && upvote.user.id == userId,
+    );
   }
 
   static IconData categoryIcon(String iconName) {

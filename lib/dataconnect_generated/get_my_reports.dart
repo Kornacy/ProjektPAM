@@ -177,7 +177,48 @@ class GetMyReportsReportsReportPhotosOnReport {
 @immutable
 class GetMyReportsReportsUpvotesOnReport {
   final String id;
+  final GetMyReportsReportsUpvotesOnReportUser user;
   GetMyReportsReportsUpvotesOnReport.fromJson(dynamic json):
+  
+  id = nativeFromJson<String>(json['id']),
+  user = json['user'] == null
+      ? GetMyReportsReportsUpvotesOnReportUser(id: '')
+      : GetMyReportsReportsUpvotesOnReportUser.fromJson(json['user']);
+  @override
+  bool operator ==(Object other) {
+    if(identical(this, other)) {
+      return true;
+    }
+    if(other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    final GetMyReportsReportsUpvotesOnReport otherTyped = other as GetMyReportsReportsUpvotesOnReport;
+    return id == otherTyped.id && 
+    user == otherTyped.user;
+    
+  }
+  @override
+  int get hashCode => Object.hashAll([id.hashCode, user.hashCode]);
+  
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> json = {};
+    json['id'] = nativeToJson<String>(id);
+    json['user'] = user.toJson();
+    return json;
+  }
+
+  GetMyReportsReportsUpvotesOnReport({
+    required this.id,
+    required this.user,
+  });
+}
+
+@immutable
+class GetMyReportsReportsUpvotesOnReportUser {
+  final String id;
+  GetMyReportsReportsUpvotesOnReportUser.fromJson(dynamic json):
   
   id = nativeFromJson<String>(json['id']);
   @override
@@ -189,7 +230,7 @@ class GetMyReportsReportsUpvotesOnReport {
       return false;
     }
 
-    final GetMyReportsReportsUpvotesOnReport otherTyped = other as GetMyReportsReportsUpvotesOnReport;
+    final GetMyReportsReportsUpvotesOnReportUser otherTyped = other as GetMyReportsReportsUpvotesOnReportUser;
     return id == otherTyped.id;
     
   }
@@ -203,7 +244,7 @@ class GetMyReportsReportsUpvotesOnReport {
     return json;
   }
 
-  GetMyReportsReportsUpvotesOnReport({
+  GetMyReportsReportsUpvotesOnReportUser({
     required this.id,
   });
 }

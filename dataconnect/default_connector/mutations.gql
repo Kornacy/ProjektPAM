@@ -31,6 +31,13 @@ mutation UpvoteReport($reportId: UUID!) @auth(level: USER) {
   })
 }
 
+mutation RemoveUpvote($reportId: UUID!) @auth(level: USER) {
+  upvote_deleteMany(where: {
+    reportId: { eq: $reportId }
+    userId: { eq_expr: "auth.uid" }
+  })
+}
+
 mutation AddComment($reportId: UUID!, $content: String!) @auth(level: USER) {
   comment_insert(data: {
     reportId: $reportId

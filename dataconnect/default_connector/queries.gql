@@ -16,6 +16,9 @@ query GetReports @auth(level: PUBLIC) {
     }
     upvotes_on_report {
       id
+      user {
+        id
+      }
     }
   }
 }
@@ -38,6 +41,9 @@ query GetActiveReports @auth(level: PUBLIC) {
     }
     upvotes_on_report {
       id
+      user {
+        id
+      }
     }
   }
 }
@@ -60,6 +66,9 @@ query GetMyReports @auth(level: USER) {
     }
     upvotes_on_report {
       id
+      user {
+        id
+      }
     }
     user {
       id

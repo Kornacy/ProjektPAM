@@ -40,7 +40,7 @@ class GetCategoriesCategories {
     final GetCategoriesCategories otherTyped = other as GetCategoriesCategories;
     return id == otherTyped.id && 
     name == otherTyped.name && 
-    iconName == otherTyped.iconName &&
+    iconName == otherTyped.iconName && 
     pinColor == otherTyped.pinColor;
     
   }
@@ -100,3 +100,4 @@ class GetCategoriesData {
     required this.categories,
   });
 }
+

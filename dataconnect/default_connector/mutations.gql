@@ -30,3 +30,21 @@ mutation UpvoteReport($reportId: UUID!) @auth(level: USER) {
     reportId: $reportId
   })
 }
+
+mutation AddComment($reportId: UUID!, $content: String!) @auth(level: USER) {
+  comment_insert(data: {
+    reportId: $reportId
+    userId_expr: "auth.uid"
+    content: $content
+  })
+}
+
+mutation EditComment($commentId: UUID!, $content: String!) @auth(level: USER) {
+  comment_update(id: $commentId, data: {
+    content: $content
+  })
+}
+
+mutation DeleteComment($commentId: UUID!) @auth(level: USER) {
+  comment_delete(id: $commentId)
+}

@@ -76,3 +76,16 @@ query GetCategories @auth(level: PUBLIC) {
     pinColor
   }
 }
+
+query GetReportComments($reportId: UUID!) @auth(level: PUBLIC) {
+  comments(where: { reportId: { eq: $reportId } }) {
+    id
+    content
+    createdAt
+    user {
+      id
+      username
+      photoUrl
+    }
+  }
+}

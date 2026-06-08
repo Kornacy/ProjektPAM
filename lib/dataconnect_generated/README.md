@@ -184,6 +184,55 @@ ref.execute();
 ref.subscribe(...);
 ```
 
+
+### GetReportComments
+#### Required Arguments
+```dart
+String reportId = ...;
+DefaultConnector.instance.getReportComments(
+  reportId: reportId,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `QueryResult<GetReportCommentsData, GetReportCommentsVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+/// Result of a query request. Created to hold extra variables in the future.
+class QueryResult<Data, Variables> extends OperationResult<Data, Variables> {
+  QueryResult(super.dataConnect, super.data, super.ref);
+}
+
+final result = await DefaultConnector.instance.getReportComments(
+  reportId: reportId,
+);
+GetReportCommentsData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String reportId = ...;
+
+final ref = DefaultConnector.instance.getReportComments(
+  reportId: reportId,
+).ref();
+ref.execute();
+
+ref.subscribe(...);
+```
+
 ## Mutations
 
 ### UpsertUser
@@ -407,6 +456,142 @@ String reportId = ...;
 
 final ref = DefaultConnector.instance.upvoteReport(
   reportId: reportId,
+).ref();
+ref.execute();
+```
+
+
+### AddComment
+#### Required Arguments
+```dart
+String reportId = ...;
+String content = ...;
+DefaultConnector.instance.addComment(
+  reportId: reportId,
+  content: content,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<AddCommentData, AddCommentVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.addComment(
+  reportId: reportId,
+  content: content,
+);
+AddCommentData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String reportId = ...;
+String content = ...;
+
+final ref = DefaultConnector.instance.addComment(
+  reportId: reportId,
+  content: content,
+).ref();
+ref.execute();
+```
+
+
+### EditComment
+#### Required Arguments
+```dart
+String commentId = ...;
+String content = ...;
+DefaultConnector.instance.editComment(
+  commentId: commentId,
+  content: content,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<EditCommentData, EditCommentVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.editComment(
+  commentId: commentId,
+  content: content,
+);
+EditCommentData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String commentId = ...;
+String content = ...;
+
+final ref = DefaultConnector.instance.editComment(
+  commentId: commentId,
+  content: content,
+).ref();
+ref.execute();
+```
+
+
+### DeleteComment
+#### Required Arguments
+```dart
+String commentId = ...;
+DefaultConnector.instance.deleteComment(
+  commentId: commentId,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<DeleteCommentData, DeleteCommentVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.deleteComment(
+  commentId: commentId,
+);
+DeleteCommentData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String commentId = ...;
+
+final ref = DefaultConnector.instance.deleteComment(
+  commentId: commentId,
 ).ref();
 ref.execute();
 ```

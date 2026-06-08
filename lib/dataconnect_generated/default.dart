@@ -11,6 +11,14 @@ part 'add_photo.dart';
 
 part 'upvote_report.dart';
 
+part 'remove_upvote.dart';
+
+part 'add_comment.dart';
+
+part 'edit_comment.dart';
+
+part 'delete_comment.dart';
+
 part 'get_reports.dart';
 
 part 'get_active_reports.dart';
@@ -18,6 +26,8 @@ part 'get_active_reports.dart';
 part 'get_my_reports.dart';
 
 part 'get_categories.dart';
+
+part 'get_report_comments.dart';
 
 
 
@@ -48,6 +58,26 @@ class DefaultConnector {
   }
   
   
+  RemoveUpvoteVariablesBuilder removeUpvote ({required String reportId, }) {
+    return RemoveUpvoteVariablesBuilder(dataConnect, reportId: reportId,);
+  }
+  
+  
+  AddCommentVariablesBuilder addComment ({required String reportId, required String content, }) {
+    return AddCommentVariablesBuilder(dataConnect, reportId: reportId,content: content,);
+  }
+  
+  
+  EditCommentVariablesBuilder editComment ({required String commentId, required String content, }) {
+    return EditCommentVariablesBuilder(dataConnect, commentId: commentId,content: content,);
+  }
+  
+  
+  DeleteCommentVariablesBuilder deleteComment ({required String commentId, }) {
+    return DeleteCommentVariablesBuilder(dataConnect, commentId: commentId,);
+  }
+  
+  
   GetReportsVariablesBuilder getReports () {
     return GetReportsVariablesBuilder(dataConnect, );
   }
@@ -65,6 +95,11 @@ class DefaultConnector {
   
   GetCategoriesVariablesBuilder getCategories () {
     return GetCategoriesVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetReportCommentsVariablesBuilder getReportComments ({required String reportId, }) {
+    return GetReportCommentsVariablesBuilder(dataConnect, reportId: reportId,);
   }
   
 

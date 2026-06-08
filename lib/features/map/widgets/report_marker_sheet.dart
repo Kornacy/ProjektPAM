@@ -3,16 +3,19 @@ import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/reports/widgets/photo_viewer.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
+import 'package:city_issues/services/auth_service.dart';
 
 class ReportMarkerSheet extends StatelessWidget {
   const ReportMarkerSheet({
     super.key,
     required this.report,
     required this.onOpenDetail,
+    this.upvoteButton,
   });
 
   final GetReportsReports report;
   final VoidCallback onOpenDetail;
+  final Widget? upvoteButton;
 
   String? get _photoUrl {
     if (report.reportPhotos_on_report.isEmpty) return null;
@@ -80,10 +83,16 @@ class ReportMarkerSheet extends StatelessWidget {
               Text(report.description!, maxLines: 3, overflow: TextOverflow.ellipsis),
             ],
             const SizedBox(height: 12),
-            UpvoteButton(
-              reportId: report.id,
-              initialCount: report.upvotes_on_report.length,
-            ),
+            upvoteButton ??
+                UpvoteButton(
+                  reportId: report.id,
+                  initialCount: ReportUtils.upvoteCount(report.upvotes_on_report),
+                  isSignedIn: AuthService.instance.isSignedIn,
+                  initialHasUpvoted: ReportUtils.userHasUpvoted(
+                    report.upvotes_on_report,
+                    AuthService.instance.currentUser?.uid,
+                  ),
+                ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: onOpenDetail,

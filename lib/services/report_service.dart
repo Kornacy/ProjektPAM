@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/services/storage_service.dart';
+import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/services/location_service.dart';
+import 'package:city_issues/services/storage_service.dart';
 
 class ReportService {
   ReportService._();
@@ -23,8 +24,14 @@ class ReportService {
         await DefaultConnector.instance.getActiveReports().execute();
     return result.data.reports;
   }
-    Future<void> upvoteReport(String reportId) async {
+  Future<void> upvoteReport(String reportId) async {
+    await AuthService.instance.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+  }
+
+  Future<void> removeUpvote(String reportId) async {
+    await AuthService.instance.ensureUserProfile();
+    await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
   }
 
   Future<List<GetReportsReports>> getMyReports() async {
@@ -44,7 +51,10 @@ class ReportService {
       GetReportsReportsReportPhotosOnReport(imageUrl: p.imageUrl)
     ).toList(),
     upvotes_on_report: r.upvotes_on_report.map((u) =>
-      GetReportsReportsUpvotesOnReport(id: u.id)
+      GetReportsReportsUpvotesOnReport(
+        id: u.id,
+        user: GetReportsReportsUpvotesOnReportUser(id: u.user.id),
+      )
     ).toList(),
   )).toList();
 }

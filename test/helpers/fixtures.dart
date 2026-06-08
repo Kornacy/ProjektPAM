@@ -18,8 +18,14 @@ class TestFixtures {
         category: sampleCategory,
         reportPhotos_on_report: const [],
         upvotes_on_report: [
-          GetReportsReportsUpvotesOnReport(id: 'up-1'),
-          GetReportsReportsUpvotesOnReport(id: 'up-2'),
+          GetReportsReportsUpvotesOnReport(
+            id: 'up-1',
+            user: GetReportsReportsUpvotesOnReportUser(id: 'user-a'),
+          ),
+          GetReportsReportsUpvotesOnReport(
+            id: 'up-2',
+            user: GetReportsReportsUpvotesOnReportUser(id: 'user-b'),
+          ),
         ],
       );
 

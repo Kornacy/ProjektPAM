@@ -15,6 +15,14 @@ class AuthService {
 
   bool get isSignedIn => currentUser != null;
 
+  Future<void> ensureUserProfile() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('Musisz być zalogowany, aby wykonać tę akcję.');
+    }
+    await _upsertUser(user);
+  }
+
   Future<void> initialize() async {
     await _googleSignIn.initialize(
       serverClientId:

@@ -1,17 +1,99 @@
 import 'dart:io';
+import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/storage_service.dart';
 
+class UpvoteDisplayState {
+  const UpvoteDisplayState({
+    required this.count,
+    required this.hasUpvoted,
+  });
+
+  final int count;
+  final bool hasUpvoted;
+}
+
 class ReportService {
   ReportService._();
   static final ReportService instance = ReportService._();
 
-  Future<List<GetReportsReports>> getReports() async {
-    final result = await DefaultConnector.instance.getReports().execute();
-    return result.data.reports;
+  final Map<String, UpvoteDisplayState> _upvoteCache = {};
+
+  UpvoteDisplayState? upvoteStateFor(String reportId) =>
+      _upvoteCache[reportId];
+
+  void cacheUpvoteState(
+    String reportId, {
+    required int count,
+    required bool hasUpvoted,
+  }) {
+    _upvoteCache[reportId] = UpvoteDisplayState(
+      count: count,
+      hasUpvoted: hasUpvoted,
+    );
+  }
+
+  UpvoteDisplayState resolveUpvoteState({
+    required String reportId,
+    required int serverCount,
+    required bool serverHasUpvoted,
+  }) {
+    return _upvoteCache[reportId] ??
+        UpvoteDisplayState(
+          count: serverCount,
+          hasUpvoted: serverHasUpvoted,
+        );
+  }
+
+  void _reconcileUpvoteCache(List<GetReportsReports> reports) {
+    final userId = AuthService.instance.currentUser?.uid;
+    if (userId == null) {
+      _upvoteCache.clear();
+      return;
+    }
+
+    final staleIds = <String>[];
+    for (final entry in _upvoteCache.entries) {
+      GetReportsReports? report;
+      for (final candidate in reports) {
+        if (candidate.id == entry.key) {
+          report = candidate;
+          break;
+        }
+      }
+      if (report == null) continue;
+
+      final serverHasUpvoted = ReportUtils.userHasUpvoted(
+        report.upvotes_on_report,
+        userId,
+      );
+      final serverCount = ReportUtils.upvoteCount(report.upvotes_on_report);
+      final cached = entry.value;
+
+      if (cached.hasUpvoted == serverHasUpvoted &&
+          cached.count == serverCount) {
+        staleIds.add(entry.key);
+      }
+    }
+
+    for (final id in staleIds) {
+      _upvoteCache.remove(id);
+    }
+  }
+
+  Future<List<GetReportsReports>> getReports({bool forceRefresh = false}) async {
+    final result = await DefaultConnector.instance.getReports().ref().execute(
+          fetchPolicy: forceRefresh
+              ? QueryFetchPolicy.serverOnly
+              : QueryFetchPolicy.preferCache,
+        );
+    final reports = result.data.reports;
+    _reconcileUpvoteCache(reports);
+    return reports;
   }
   Future<List<GetCategoriesCategories>> getCategories() async{
     final result = await DefaultConnector.instance.getCategories().execute();
@@ -34,9 +116,13 @@ class ReportService {
     await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
   }
 
-  Future<List<GetReportsReports>> getMyReports() async {
-  final result = await DefaultConnector.instance.getMyReports().execute();
-  return result.data.reports.map((r) => GetReportsReports(
+  Future<List<GetReportsReports>> getMyReports({bool forceRefresh = false}) async {
+  final result = await DefaultConnector.instance.getMyReports().ref().execute(
+        fetchPolicy: forceRefresh
+            ? QueryFetchPolicy.serverOnly
+            : QueryFetchPolicy.preferCache,
+      );
+  final reports = result.data.reports.map((r) => GetReportsReports(
     id: r.id,
     latitude: r.latitude,
     longitude: r.longitude,
@@ -58,6 +144,8 @@ class ReportService {
       )
     ).toList(),
   )).toList();
+  _reconcileUpvoteCache(reports);
+  return reports;
 }
 
   Future<void> createReport({

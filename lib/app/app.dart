@@ -44,6 +44,7 @@ class _CityIssuesAppState extends State<CityIssuesApp> {
       }
 
       await AuthService.instance.initialize();
+      await AuthService.instance.waitForAuthReady();
       await AppPreferences.instance.load();
     } catch (e) {
       _initError = e;

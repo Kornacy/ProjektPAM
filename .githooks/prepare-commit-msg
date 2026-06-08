@@ -1,6 +1,0 @@
-#!/bin/sh
-# Usuwa automatyczną atrybucję Cursor z wiadomości commita.
-COMMIT_MSG_FILE=$1
-sed -i.bak '/^Co-authored-by: Cursor/d' "$COMMIT_MSG_FILE" 2>/dev/null || \
-  sed -i '' '/^Co-authored-by: Cursor/d' "$COMMIT_MSG_FILE" 2>/dev/null
-rm -f "${COMMIT_MSG_FILE}.bak"

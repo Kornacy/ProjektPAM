@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
@@ -14,9 +15,13 @@ class MapScreen extends StatefulWidget {
   const MapScreen({
     super.key,
     required this.onOpenReportDetail,
+    this.filtersKey,
+    this.locationFabKey,
   });
 
   final void Function(GetReportsReports report) onOpenReportDetail;
+  final GlobalKey? filtersKey;
+  final GlobalKey? locationFabKey;
 
   @override
   State<MapScreen> createState() => MapScreenState();
@@ -31,6 +36,7 @@ class MapScreenState extends State<MapScreen> {
   List<GetReportsReports> _reports = [];
   List<GetCategoriesCategories> _categories = [];
   Set<String> _enabledCategoryIds = {};
+  bool _reportSheetOpen = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
     target: LatLng(52.2297, 21.0122),
@@ -80,7 +86,7 @@ class MapScreenState extends State<MapScreen> {
       });
       _applyFilters();
     } catch (e) {
-      if (mounted) setState(() => _error = 'Nie udało się załadować zgłoszeń: $e');
+      if (mounted) setState(() => _error = UserFacingError.loadReports(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -127,18 +133,29 @@ class MapScreenState extends State<MapScreen> {
 
   double _hueFromColor(Color color) => HSLColor.fromColor(color).hue;
 
+  /// Closes the marker bottom sheet if open. Returns true when a pop was attempted.
+  bool closeReportSheetIfOpen() {
+    if (!_reportSheetOpen) return false;
+    Navigator.of(context, rootNavigator: true).pop();
+    return true;
+  }
+
   void _showReportSheet(GetReportsReports report) {
+    setState(() => _reportSheetOpen = true);
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (_) => ReportMarkerSheet(
         report: report,
         onOpenDetail: () {
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
           widget.onOpenReportDetail(report);
         },
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _reportSheetOpen = false);
+    });
   }
 
   Future<void> _fetchCurrentLocation() async {
@@ -154,7 +171,7 @@ class MapScreenState extends State<MapScreen> {
       _moveCameraTo(newPosition);
     } catch (e) {
       if (mounted && _currentPosition == null) {
-        setState(() => _error = e.toString());
+        setState(() => _error = UserFacingError.location(e));
       }
     }
   }
@@ -173,6 +190,7 @@ class MapScreenState extends State<MapScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Odśwież zgłoszenia',
             onPressed: () {
               setState(() => _isLoading = true);
               _loadReports();
@@ -200,21 +218,24 @@ class MapScreenState extends State<MapScreen> {
             Positioned(
               left: 8,
               top: 8,
-              child: MapCategoryFilters(
-                categories: _categories,
-                enabledIds: _enabledCategoryIds,
-                onToggle: _toggleCategory,
-                onClearAll: () {
-                  setState(() => _enabledCategoryIds.clear());
-                  _applyFilters();
-                },
-                onSelectAll: () {
-                  setState(() {
-                    _enabledCategoryIds =
-                        _categories.map((c) => c.id).toSet();
-                  });
-                  _applyFilters();
-                },
+              child: KeyedSubtree(
+                key: widget.filtersKey,
+                child: MapCategoryFilters(
+                  categories: _categories,
+                  enabledIds: _enabledCategoryIds,
+                  onToggle: _toggleCategory,
+                  onClearAll: () {
+                    setState(() => _enabledCategoryIds.clear());
+                    _applyFilters();
+                  },
+                  onSelectAll: () {
+                    setState(() {
+                      _enabledCategoryIds =
+                          _categories.map((c) => c.id).toSet();
+                    });
+                    _applyFilters();
+                  },
+                ),
               ),
             ),
           if (_isLoading && _reports.isEmpty)
@@ -224,6 +245,7 @@ class MapScreenState extends State<MapScreen> {
         ],
       ),
       floatingActionButton: Padding(
+        key: widget.locationFabKey,
         padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
         child: FloatingActionButton(
           onPressed: _fetchCurrentLocation,

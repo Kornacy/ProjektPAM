@@ -1,3 +1,4 @@
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/services/report_service.dart';
 import 'package:flutter/material.dart';
 
@@ -37,7 +38,7 @@ class _UpvoteButtonState extends State<UpvoteButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nie udało się podbić: $e')),
+          SnackBar(content: Text(UserFacingError.upvote(e))),
         );
       }
     } finally {

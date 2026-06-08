@@ -1,7 +1,7 @@
 /// Informacje o aplikacji — wersja zgodna z pubspec.yaml.
 class AppInfo {
   static const String appName = 'City Issues';
-  static const String version = '1.0.0';
+  static const String version = '0.2.0';
   static const String buildNumber = '1';
   static String get versionLabel => '$version ($buildNumber)';
 

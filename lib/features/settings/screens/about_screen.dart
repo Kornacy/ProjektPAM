@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:city_issues/core/constants/app_info.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
 
@@ -13,10 +14,10 @@ class AboutScreen extends StatelessWidget {
         padding: ScrollPadding.list(context),
         children: [
           Center(
-            child: Icon(
-              Icons.location_city,
-              size: 72,
-              color: Theme.of(context).colorScheme.primary,
+            child: SvgPicture.asset(
+              'assets/images/app_logo.svg',
+              width: 96,
+              height: 96,
             ),
           ),
           const SizedBox(height: 16),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
-import 'package:city_issues/features/onboarding/onboarding_screen.dart';
+import 'package:city_issues/features/onboarding/app_tour.dart';
 import 'package:city_issues/features/reports/screens/create_report_screen.dart';
 import 'package:city_issues/features/reports/screens/my_reports_screen.dart';
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
@@ -18,13 +19,28 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
+  final _navBarKey = GlobalKey();
+  final _mapFiltersKey = GlobalKey();
+  final _mapFabKey = GlobalKey();
+  final _settingsHelpKey = GlobalKey();
+  final _settingsScrollController = ScrollController();
 
   int _stackIndex = 0;
   int _lastMainTab = 0;
+  int _createReportSession = 0;
   LatLng? _createInitialLocation;
 
   final _mapKey = GlobalKey<MapScreenState>();
   final _myReportsKey = GlobalKey<MyReportsScreenState>();
+
+  bool _tourVisible = false;
+  bool _tourReplay = false;
+  int _tourStep = 0;
+  late final List<AppTourStep> _tourSteps = AppTourSteps.build(
+    mapFiltersKey: _mapFiltersKey,
+    mapFabKey: _mapFabKey,
+    settingsHelpKey: _settingsHelpKey,
+  );
 
   int get _navIndex {
     if (_stackIndex == 3) return 2;
@@ -38,25 +54,76 @@ class _MainShellState extends State<MainShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowOnboarding());
   }
 
+  @override
+  void dispose() {
+    _settingsScrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _maybeShowOnboarding() async {
     if (!mounted) return;
     if (!AppPreferences.instance.hasCompletedOnboarding) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => const OnboardingScreen(),
-        ),
-      );
+      _startTour();
     }
   }
 
   void openOnboarding({bool replay = true}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => OnboardingScreen(replay: replay),
-      ),
-    );
+    _startTour(replay: replay);
+  }
+
+  void _startTour({bool replay = false}) {
+    setState(() {
+      _tourVisible = true;
+      _tourReplay = replay;
+      _tourStep = 0;
+      _stackIndex = 0;
+      _createInitialLocation = null;
+    });
+    _applyTourStep(0);
+  }
+
+  Future<void> _applyTourStep(int step) async {
+    final target = _tourSteps[step];
+    setState(() {
+      _tourStep = step;
+      _stackIndex = target.stackIndex;
+      if (_stackIndex != 3) _createInitialLocation = null;
+    });
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    if (target.targetKey == _settingsHelpKey) {
+      final helpContext = _settingsHelpKey.currentContext;
+      if (helpContext != null && helpContext.mounted) {
+        await Scrollable.ensureVisible(
+          helpContext,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          alignment: 0.3,
+        );
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _nextTourStep() async {
+    if (_tourStep >= _tourSteps.length - 1) {
+      await _finishTour();
+      return;
+    }
+    await _applyTourStep(_tourStep + 1);
+  }
+
+  Future<void> _finishTour() async {
+    if (!_tourReplay) {
+      await AppPreferences.instance.setOnboardingCompleted();
+    }
+    if (mounted) {
+      setState(() => _tourVisible = false);
+    }
   }
 
   void openReportDetail(GetReportsReports report) {
@@ -75,6 +142,7 @@ class _MainShellState extends State<MainShell> {
     if (_stackIndex != 3) _lastMainTab = _stackIndex;
     setState(() {
       _createInitialLocation = initialLocation;
+      _createReportSession++;
       _stackIndex = 3;
     });
   }
@@ -90,6 +158,44 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  void _handleSystemBack() {
+    if (_tourVisible) {
+      _finishTour();
+      return;
+    }
+
+    if (_mapKey.currentState?.closeReportSheetIfOpen() ?? false) {
+      return;
+    }
+
+    final shell = _shellNavigatorKey.currentState;
+    if (shell != null && shell.canPop()) {
+      shell.pop();
+      return;
+    }
+
+    final rootNav = Navigator.of(context, rootNavigator: true);
+    if (rootNav.canPop()) {
+      rootNav.pop();
+      return;
+    }
+
+    if (_stackIndex == 3) {
+      _closeCreateReport();
+      return;
+    }
+
+    if (_stackIndex != 0) {
+      setState(() {
+        _stackIndex = 0;
+        _createInitialLocation = null;
+      });
+      return;
+    }
+
+    SystemNavigator.pop();
+  }
+
   Widget _buildMainTabs() {
     return IndexedStack(
       index: _stackIndex,
@@ -97,14 +203,20 @@ class _MainShellState extends State<MainShell> {
         MapScreen(
           key: _mapKey,
           onOpenReportDetail: openReportDetail,
+          filtersKey: _mapFiltersKey,
+          locationFabKey: _mapFabKey,
         ),
         MyReportsScreen(
           key: _myReportsKey,
           onOpenReportDetail: openReportDetail,
         ),
-        SettingsScreen(onShowOnboarding: () => openOnboarding(replay: true)),
+        SettingsScreen(
+          onShowOnboarding: () => openOnboarding(replay: true),
+          onboardingHelpKey: _settingsHelpKey,
+          scrollController: _settingsScrollController,
+        ),
         CreateReportScreen(
-          key: ValueKey(_createInitialLocation),
+          key: ValueKey(_createReportSession),
           initialLocation: _createInitialLocation,
           embedded: true,
           onClose: _closeCreateReport,
@@ -116,53 +228,80 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Navigator(
-        key: _shellNavigatorKey,
-        onGenerateRoute: (settings) {
-          return MaterialPageRoute(
-            builder: (_) => _buildMainTabs(),
-          );
-        },
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _navIndex,
-        onDestinationSelected: (index) {
-          if (_shellNavigatorKey.currentState?.canPop() == true) {
-            _shellNavigatorKey.currentState?.popUntil((route) => route.isFirst);
-          }
-          if (index == 2) {
-            _openCreateReport();
-            return;
-          }
-          setState(() {
-            _stackIndex = index == 3 ? 2 : index;
-            if (_stackIndex != 3) _createInitialLocation = null;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Mapa',
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleSystemBack();
+      },
+      child: Stack(
+        children: [
+          Scaffold(
+          body: Navigator(
+            key: _shellNavigatorKey,
+            onGenerateRoute: (settings) {
+              return MaterialPageRoute(
+                builder: (_) => _buildMainTabs(),
+              );
+            },
           ),
-          NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt),
-            label: 'Moje',
+          bottomNavigationBar: NavigationBar(
+            key: _navBarKey,
+            selectedIndex: _navIndex,
+            onDestinationSelected: (index) {
+              if (_tourVisible) return;
+              if (_shellNavigatorKey.currentState?.canPop() == true) {
+                _shellNavigatorKey.currentState
+                    ?.popUntil((route) => route.isFirst);
+              }
+              if (index == 2) {
+                _openCreateReport();
+                return;
+              }
+              setState(() {
+                _stackIndex = index == 3 ? 2 : index;
+                if (_stackIndex != 3) _createInitialLocation = null;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.map_outlined),
+                selectedIcon: Icon(Icons.map),
+                label: 'Mapa',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.list_alt_outlined),
+                selectedIcon: Icon(Icons.list_alt),
+                label: 'Moje',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.add_circle_outline),
+                selectedIcon: Icon(Icons.add_circle),
+                label: 'Dodaj',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            selectedIcon: Icon(Icons.add_circle),
-            label: 'Dodaj',
+        ),
+        if (_tourVisible)
+          Positioned.fill(
+            child: AppTourOverlay(
+              step: _tourSteps[_tourStep],
+              stepIndex: _tourStep,
+              stepCount: _tourSteps.length,
+              navBarKey: _navBarKey,
+              isLast: _tourStep == _tourSteps.length - 1,
+              isReplay: _tourReplay,
+              onNext: _nextTourStep,
+              onSkip: _finishTour,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
-      ),
+      ],
+    ),
     );
   }
 }

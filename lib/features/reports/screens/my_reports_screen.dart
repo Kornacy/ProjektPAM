@@ -6,7 +6,7 @@ import 'package:city_issues/core/widgets/app_error.dart';
 import 'package:city_issues/core/widgets/app_loading.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
-//import 'package:city_issues/services/reports_repository.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 
 class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key, required this.onOpenReportDetail});
@@ -39,7 +39,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
       final reports = await ReportService.instance.getMyReports();
       if (mounted) setState(() => _reports = reports);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = UserFacingError.loadMyReports(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -51,7 +51,11 @@ class MyReportsScreenState extends State<MyReportsScreen> {
       appBar: AppBar(
         title: const Text('Moje zgłoszenia'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Odśwież listę',
+            onPressed: _load,
+          ),
         ],
       ),
       body: _buildBody(),

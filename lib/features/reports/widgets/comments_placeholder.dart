@@ -15,8 +15,12 @@ class CommentsPlaceholder extends StatelessWidget {
               children: [
                 Icon(Icons.chat_bubble_outline, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Komentarze', style: Theme.of(context).textTheme.titleMedium),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    'Komentarze',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 Chip(
                   label: const Text('Wkrótce'),
                   visualDensity: VisualDensity.compact,

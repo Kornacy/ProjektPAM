@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:city_issues/core/utils/auth_validation.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AuthValidation', () {

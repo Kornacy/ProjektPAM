@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:city_issues/core/utils/auth_validation.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -10,33 +11,20 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _error;
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _registerWithGoogle() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      await AuthService.instance.registerWithEmailPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Konto zostało utworzone. Witaj!')),
-        );
-        Navigator.pop(context);
-      }
+      await AuthService.instance.signInWithGoogle();
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (!mounted) return;
+      final message = UserFacingError.googleSignIn(e);
+      setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -44,50 +32,131 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final minHeight = MediaQuery.sizeOf(context).height -
+        MediaQuery.paddingOf(context).top -
+        MediaQuery.paddingOf(context).bottom -
+        kToolbarHeight;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Rejestracja')),
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  autocorrect: false,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                  validator: AuthValidation.validateEmail,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: const InputDecoration(labelText: 'Hasło (min. 8 znaków)'),
-                  validator: AuthValidation.validatePassword,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmController,
-                  obscureText: _obscurePassword,
-                  decoration: const InputDecoration(labelText: 'Potwierdź hasło'),
-                  validator: (v) => AuthValidation.validatePasswordConfirm(
-                    _passwordController.text,
-                    v,
+                Center(
+                  child: SvgPicture.asset(
+                    'assets/images/app_logo.svg',
+                    width: 120,
+                    height: 120,
                   ),
                 ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ],
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
+                Text(
+                  'Załóż konto przez Google',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Pierwsze logowanie kontem Google automatycznie utworzy Twoje konto w aplikacji.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                if (_error != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(
+                        color: colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                OutlinedButton(
+                  onPressed: _isLoading ? null : _registerWithGoogle,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    side: BorderSide(color: colorScheme.outlineVariant),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: colorScheme.surface,
+                    foregroundColor: colorScheme.onSurface,
+                  ),
                   child: _isLoading
-                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Utwórz konto'),
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const _GoogleLogo(size: 24),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Zarejestruj się z Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Nie musisz tworzyć osobnego hasła — Google zadba o bezpieczeństwo Twojego konta.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: _isLoading ? null : () => Navigator.pop(context),
+                  child: const Text(
+                    'Masz już konto? Zaloguj się',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),
@@ -96,12 +165,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+}
+
+class _GoogleLogo extends StatelessWidget {
+  const _GoogleLogo({required this.size});
+
+  final double size;
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(painter: _GoogleLogoPainter()),
+    );
   }
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    paint.color = const Color(0xFFEA4335);
+    canvas.drawArc(Rect.fromLTWH(0, 0, w, h), 2.4, 1.2, true, paint);
+
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawArc(Rect.fromLTWH(0, 0, w, h), -0.6, 1.4, true, paint);
+
+    paint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(Rect.fromLTWH(0, 0, w, h), 1.8, 1.2, true, paint);
+
+    paint.color = const Color(0xFF34A853);
+    canvas.drawArc(Rect.fromLTWH(0, 0, w, h), 0.6, 1.4, true, paint);
+
+    paint.color = Colors.white;
+    canvas.drawCircle(Offset(w * 0.5, h * 0.5), w * 0.38, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

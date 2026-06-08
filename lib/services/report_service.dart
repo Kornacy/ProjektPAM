@@ -42,6 +42,7 @@ class ReportService {
     longitude: r.longitude,
     description: r.description,
     status: r.status,
+    createdAt: r.createdAt,
     category: GetReportsReportsCategory(
       name: r.category.name,
       iconName: r.category.iconName,

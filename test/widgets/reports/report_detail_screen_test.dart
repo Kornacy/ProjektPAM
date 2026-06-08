@@ -28,6 +28,7 @@ void main() {
       expect(find.text('Nowe'), findsOneWidget);
       expect(find.textContaining('Dziura na chodniku'), findsOneWidget);
       expect(find.text('2 osoby wspierają'), findsOneWidget);
+      expect(find.textContaining('Zgłoszono:'), findsOneWidget);
     });
 
     testWidgets('calls onBack from app bar leading button', (tester) async {

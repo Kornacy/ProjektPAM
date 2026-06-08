@@ -1,4 +1,5 @@
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/material.dart';
 
 class ReportUtils {
@@ -37,6 +38,13 @@ class ReportUtils {
       return Color(int.parse('FF$hex', radix: 16));
     }
     return Colors.red;
+  }
+
+  static String formatDateTime(Timestamp timestamp) {
+    final date = timestamp.toDateTime().toLocal();
+    String two(int value) => value.toString().padLeft(2, '0');
+    return '${two(date.day)}.${two(date.month)}.${date.year}, '
+        '${two(date.hour)}:${two(date.minute)}';
   }
 
   static int upvoteCount(List<GetReportsReportsUpvotesOnReport> upvotes) {

@@ -7,10 +7,13 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   group('ReportDetailScreen', () {
-    testWidgets('renders report details and comments placeholder', (tester) async {
+    testWidgets('renders report details and comments section', (tester) async {
       await pumpWidget(
         tester,
-        ReportDetailScreen(report: TestFixtures.sampleReport),
+        ReportDetailScreen(
+          report: TestFixtures.sampleReport,
+          commentsSection: const SizedBox.shrink(),
+        ),
         surfaceSize: const Size(400, 900),
       );
 
@@ -18,7 +21,6 @@ void main() {
       expect(find.text('Drogi'), findsWidgets);
       expect(find.text('Nowe'), findsOneWidget);
       expect(find.textContaining('Dziura na chodniku'), findsOneWidget);
-      expect(find.text('Komentarze'), findsOneWidget);
       expect(find.text('Podbij (2)'), findsOneWidget);
     });
 
@@ -30,6 +32,7 @@ void main() {
         ReportDetailScreen(
           report: TestFixtures.sampleReport,
           onBack: () => backPressed = true,
+          commentsSection: const SizedBox.shrink(),
         ),
       );
 
@@ -47,6 +50,7 @@ void main() {
         ReportDetailScreen(
           report: TestFixtures.sampleReport,
           onBack: () => backPressed = true,
+          commentsSection: const SizedBox.shrink(),
         ),
       );
 

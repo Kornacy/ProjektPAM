@@ -54,6 +54,18 @@ class UserFacingError {
   static String upvote(Object error) =>
       message(error, fallback: 'Nie udało się oddać głosu.');
 
+  static String loadComments(Object error) =>
+      message(error, fallback: 'Nie udało się załadować komentarzy.');
+
+  static String addComment(Object error) =>
+      message(error, fallback: 'Nie udało się dodać komentarza.');
+
+  static String editComment(Object error) =>
+      message(error, fallback: 'Nie udało się edytować komentarza.');
+
+  static String deleteComment(Object error) =>
+      message(error, fallback: 'Nie udało się usunąć komentarza.');
+
   static String location(Object error) =>
       message(error, fallback: 'Nie udało się ustalić lokalizacji.');
 

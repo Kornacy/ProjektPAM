@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
-import 'package:city_issues/features/reports/widgets/comments_placeholder.dart';
+import 'package:city_issues/features/reports/widgets/comments_section.dart';
+import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/features/reports/widgets/photo_viewer.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
@@ -12,10 +13,12 @@ class ReportDetailScreen extends StatelessWidget {
     super.key,
     required this.report,
     this.onBack,
+    this.commentsSection,
   });
 
   final GetReportsReports report;
   final VoidCallback? onBack;
+  final Widget? commentsSection;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +139,12 @@ class ReportDetailScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 24),
-                    const CommentsPlaceholder(),
+                    commentsSection ??
+                        CommentsSection(
+                          reportId: report.id,
+                          isSignedIn: AuthService.instance.isSignedIn,
+                          currentUserId: AuthService.instance.currentUser?.uid,
+                        ),
                   ],
                 ),
               ),

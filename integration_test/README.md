@@ -152,7 +152,19 @@ Kroki w CI:
 
 Do uruchomienia emulatorów **nie są wymagane** sekrety Firebase — testy działają w pełni offline na Emulator Suite.
 
-Plik `android/app/google-services.json` musi być w repozytorium (wygenerowany przez FlutterFire).
+### Sekrety (klucze nie są w repo)
+
+W repozytorium commituj tylko **konfigurację bez kluczy**:
+
+- `firebase.json`, `.firebaserc`, `storage.rules`
+
+Klucze klienckie trafiają do **GitHub Secrets** — szczegóły: [`docs/CI-SECRETS.md`](../docs/CI-SECRETS.md).
+
+Szybka konfiguracja (lokalnie, po `flutterfire configure`):
+
+```powershell
+.\scripts\set-github-secrets.ps1
+```
 
 ## Co testujemy
 

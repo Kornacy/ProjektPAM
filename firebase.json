@@ -1,0 +1,47 @@
+{
+  "emulators": {
+    "auth": {
+      "host": "0.0.0.0",
+      "port": 9099
+    },
+    "storage": {
+      "host": "0.0.0.0",
+      "port": 9199
+    },
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData",
+      "host": "0.0.0.0",
+      "port": 9399
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "projekt-pam-city-issues",
+          "appId": "1:1090813821582:android:876bc15abae163a83c3fdf",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "projekt-pam-city-issues",
+          "configurations": {
+            "android": "1:1090813821582:android:876bc15abae163a83c3fdf"
+          }
+        }
+      }
+    }
+  }
+}

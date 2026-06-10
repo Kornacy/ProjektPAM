@@ -20,6 +20,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify Firebase project config (no secrets)
+        run: |
+          test -f firebase.json || (echo "::error::Brak firebase.json w repozytorium" && exit 1)
+          test -f .firebaserc || (echo "::error::Brak .firebaserc w repozytorium" && exit 1)
+
+      - name: Create Firebase client config from GitHub Secrets
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::error::Sekret GOOGLE_SERVICES_JSON nie jest ustawiony. Zobacz docs/CI-SECRETS.md"
+            exit 1
+          fi
+          if [ -z "$FIREBASE_OPTIONS_DART" ]; then
+            echo "::error::Sekret FIREBASE_OPTIONS_DART nie jest ustawiony. Zobacz docs/CI-SECRETS.md"
+            exit 1
+          fi
+          mkdir -p android/app lib
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          printf '%s' "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+          test -s android/app/google-services.json
+          test -s lib/firebase_options.dart
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -49,8 +73,9 @@ jobs:
           profile: pixel_6
           disable-animations: true
           script: |
+            cd "$GITHUB_WORKSPACE"
             adb wait-for-device
             firebase emulators:exec \
               --only auth,dataconnect,storage \
               --project projekt-pam-city-issues \
-              "npm run seed --prefix scripts && flutter test integration_test -d emulator-5554 --dart-define=USE_FIREBASE_EMULATOR=true --dart-define=EMULATOR_HOST=10.0.2.2"
+              "cd \"$GITHUB_WORKSPACE\" && npm run seed --prefix scripts && flutter test integration_test -d emulator-5554 --dart-define=USE_FIREBASE_EMULATOR=true --dart-define=EMULATOR_HOST=10.0.2.2"

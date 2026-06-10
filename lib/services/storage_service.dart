@@ -1,15 +1,33 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class StorageService {
-  StorageService._();
+  StorageService._({FirebaseAuth? firebaseAuth, FirebaseStorage? storage})
+      : _firebaseAuthOverride = firebaseAuth,
+        _storageOverride = storage;
+
   static final StorageService instance = StorageService._();
 
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  @visibleForTesting
+  factory StorageService.forTesting({
+    FirebaseAuth? firebaseAuth,
+    FirebaseStorage? storage,
+  }) =>
+      StorageService._(firebaseAuth: firebaseAuth, storage: storage);
+
+  final FirebaseAuth? _firebaseAuthOverride;
+  final FirebaseStorage? _storageOverride;
+
+  FirebaseAuth get _firebaseAuth =>
+      _firebaseAuthOverride ?? FirebaseAuth.instance;
+
+  FirebaseStorage get _storage =>
+      _storageOverride ?? FirebaseStorage.instance;
 
   Future<String> uploadReportPhoto(File photo) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = _firebaseAuth.currentUser?.uid;
     if (uid == null) throw Exception('Użytkownik nie jest zalogowany.');
 
     final String path =

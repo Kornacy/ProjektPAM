@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/auth_service.dart';
@@ -6,8 +7,16 @@ import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/storage_service.dart';
 
 class ReportService {
-  ReportService._();
+  ReportService._({AuthService? authService})
+      : _authService = authService ?? AuthService.instance;
+
   static final ReportService instance = ReportService._();
+
+  @visibleForTesting
+  factory ReportService.forTesting({AuthService? authService}) =>
+      ReportService._(authService: authService);
+
+  final AuthService _authService;
 
   Future<List<GetReportsReports>> getReports() async {
     final result = await DefaultConnector.instance.getReports().execute();
@@ -25,12 +34,12 @@ class ReportService {
     return result.data.reports;
   }
   Future<void> upvoteReport(String reportId) async {
-    await AuthService.instance.ensureUserProfile();
+    await _authService.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
   }
 
   Future<void> removeUpvote(String reportId) async {
-    await AuthService.instance.ensureUserProfile();
+    await _authService.ensureUserProfile();
     await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
   }
 

@@ -1,13 +1,27 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../dataconnect_generated/default.dart';
 
 class AuthService {
-  AuthService._();
+  AuthService._({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
+      : _firebaseAuthOverride = firebaseAuth,
+        _googleSignInOverride = googleSignIn;
+
   static final AuthService instance = AuthService._();
 
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  @visibleForTesting
+  factory AuthService.forTesting({FirebaseAuth? firebaseAuth}) =>
+      AuthService._(firebaseAuth: firebaseAuth);
+
+  final FirebaseAuth? _firebaseAuthOverride;
+  final GoogleSignIn? _googleSignInOverride;
+
+  FirebaseAuth get _firebaseAuth =>
+      _firebaseAuthOverride ?? FirebaseAuth.instance;
+
+  GoogleSignIn get _googleSignIn =>
+      _googleSignInOverride ?? GoogleSignIn.instance;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 

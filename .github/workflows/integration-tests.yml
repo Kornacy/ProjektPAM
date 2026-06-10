@@ -44,6 +44,14 @@ jobs:
           test -s android/app/google-services.json
           test -s lib/firebase_options.dart
 
+      - name: Cache Firebase emulators
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('firebase.json') }}
+          restore-keys: |
+            firebase-emulators-${{ runner.os }}-
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -74,8 +82,6 @@ jobs:
           disable-animations: true
           script: |
             cd "$GITHUB_WORKSPACE"
+            chmod +x scripts/ci-run-integration-tests.sh
             adb wait-for-device
-            firebase emulators:exec \
-              --only auth,dataconnect,storage \
-              --project projekt-pam-city-issues \
-              "cd \"$GITHUB_WORKSPACE\" && npm run seed --prefix scripts && flutter test integration_test -d emulator-5554 --dart-define=USE_FIREBASE_EMULATOR=true --dart-define=EMULATOR_HOST=10.0.2.2"
+            firebase emulators:exec --only auth,dataconnect,storage --project projekt-pam-city-issues "bash scripts/ci-run-integration-tests.sh"

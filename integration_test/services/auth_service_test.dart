@@ -1,14 +1,11 @@
 import 'package:city_issues/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 
 import '../helpers/integration_setup.dart';
 import '../helpers/test_auth.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   group('AuthService integration', () {
     setUpAll(() async {
       await setUpIntegrationTests();

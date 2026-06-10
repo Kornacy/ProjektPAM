@@ -6,14 +6,11 @@ import 'package:city_issues/services/comment_service.dart';
 import 'package:city_issues/services/report_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:integration_test/integration_test.dart';
 
 import '../helpers/integration_setup.dart';
 import '../helpers/test_auth.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   group('ReportService integration', () {
     setUpAll(() async {
       await setUpIntegrationTests();
@@ -68,10 +65,11 @@ void main() {
         selectedLocation: const LatLng(52.228, 21.011),
       );
 
+      const description = 'Zgłoszenie pod test głosowania';
       final reports = await ReportService.instance.getReports();
-      expect(reports, isNotEmpty);
-
-      final reportId = reports.first.id;
+      final reportId = reports
+          .firstWhere((report) => report.description == description)
+          .id;
       final userId = AuthService.instance.currentUser!.uid;
 
       await ReportService.instance.upvoteReport(reportId);
@@ -107,8 +105,11 @@ void main() {
         selectedLocation: const LatLng(52.23, 21.01),
       );
 
+      const description = 'Zgłoszenie pod komentarze integracyjne';
       final myReports = await ReportService.instance.getMyReports();
-      final reportId = myReports.first.id;
+      final reportId = myReports
+          .firstWhere((report) => report.description == description)
+          .id;
 
       final commentId = await CommentService.instance.addComment(
         reportId: reportId,

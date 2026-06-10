@@ -49,16 +49,20 @@ class FirebaseBootstrap {
     return 'localhost';
   }
 
+  static bool _emulatorConfigured = false;
+
   static Future<void> initialize({
     bool? useEmulator,
     String? emulatorHost,
   }) async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
 
     final shouldUseEmulator = useEmulator ?? FirebaseBootstrap.useEmulator;
-    if (!shouldUseEmulator) {
+    if (!shouldUseEmulator || _emulatorConfigured) {
       return;
     }
 
@@ -75,5 +79,7 @@ class FirebaseBootstrap {
       host,
       storageEmulatorPort,
     );
+
+    _emulatorConfigured = true;
   }
 }

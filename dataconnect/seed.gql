@@ -1,23 +1,23 @@
 mutation SeedCategories {
-  drogi: category_insert(data: {
+  drogi: category_upsert(data: {
     id: "DROGI"
     name: "Drogi"
     iconName: "road"
     pinColor: "#FF0000"
   })
-  oswietlenie: category_insert(data: {
+  oswietlenie: category_upsert(data: {
     id: "OSWIETLENIE"
     name: "Oświetlenie"
     iconName: "lightbulb"
     pinColor: "#FFFF00"
   })
-  smieci: category_insert(data: {
+  smieci: category_upsert(data: {
     id: "SMIECI"
     name: "Śmieci"
     iconName: "delete"
     pinColor: "#00FF00"
   })
-  inne: category_insert(data: {
+  inne: category_upsert(data: {
     id: "INNE"
     name: "Inne"
     iconName: "help"

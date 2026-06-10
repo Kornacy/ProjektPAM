@@ -100,3 +100,6 @@ ios/.symlinks/
 .idea/
 .vscode/
 *.iml
+
+# Node (emulator seed scripts)
+scripts/node_modules/

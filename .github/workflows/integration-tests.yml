@@ -1,0 +1,56 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+      - backend-test
+  pull_request:
+    branches:
+      - main
+      - backend-test
+
+jobs:
+  integration:
+    name: Firebase emulator + Android integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Install emulator seed script dependencies
+        run: npm install --prefix scripts
+
+      - name: Run integration tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb wait-for-device
+            firebase emulators:exec \
+              --only auth,dataconnect,storage \
+              --project projekt-pam-city-issues \
+              "npm run seed --prefix scripts && flutter test integration_test -d emulator-5554 --dart-define=USE_FIREBASE_EMULATOR=true --dart-define=EMULATOR_HOST=10.0.2.2"

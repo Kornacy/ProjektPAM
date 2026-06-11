@@ -142,9 +142,11 @@ class GetMyReportsReportsCategory {
 
 @immutable
 class GetMyReportsReportsReportPhotosOnReport {
+  final String id;
   final String imageUrl;
   GetMyReportsReportsReportPhotosOnReport.fromJson(dynamic json):
   
+  id = nativeFromJson<String>(json['id']),
   imageUrl = nativeFromJson<String>(json['imageUrl']);
   @override
   bool operator ==(Object other) {
@@ -156,20 +158,23 @@ class GetMyReportsReportsReportPhotosOnReport {
     }
 
     final GetMyReportsReportsReportPhotosOnReport otherTyped = other as GetMyReportsReportsReportPhotosOnReport;
-    return imageUrl == otherTyped.imageUrl;
+    return id == otherTyped.id && 
+    imageUrl == otherTyped.imageUrl;
     
   }
   @override
-  int get hashCode => imageUrl.hashCode;
+  int get hashCode => Object.hashAll([id.hashCode, imageUrl.hashCode]);
   
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
+    json['id'] = nativeToJson<String>(id);
     json['imageUrl'] = nativeToJson<String>(imageUrl);
     return json;
   }
 
   GetMyReportsReportsReportPhotosOnReport({
+    required this.id,
     required this.imageUrl,
   });
 }
@@ -181,9 +186,7 @@ class GetMyReportsReportsUpvotesOnReport {
   GetMyReportsReportsUpvotesOnReport.fromJson(dynamic json):
   
   id = nativeFromJson<String>(json['id']),
-  user = json['user'] == null
-      ? GetMyReportsReportsUpvotesOnReportUser(id: '')
-      : GetMyReportsReportsUpvotesOnReportUser.fromJson(json['user']);
+  user = GetMyReportsReportsUpvotesOnReportUser.fromJson(json['user']);
   @override
   bool operator ==(Object other) {
     if(identical(this, other)) {

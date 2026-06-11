@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../helpers/integration_setup.dart';
 import '../helpers/test_auth.dart';
+import '../helpers/test_photo.dart';
 
 void main() {
   group('ReportService integration', () {
@@ -139,6 +140,52 @@ void main() {
 
       final afterDelete = await CommentService.instance.getComments(reportId);
       expect(afterDelete.any((comment) => comment.id == commentId), isFalse);
+    });
+
+    testWidgets('signed-in user can edit and delete own report', (tester) async {
+      await signInAndEnsureProfile();
+
+      final initialPhoto = await createTestPhotoFile();
+      const description = 'Zgłoszenie pod edycję i usunięcie';
+      await ReportService.instance.createReport(
+        categoryId: 'DROGI',
+        description: description,
+        photos: [initialPhoto],
+        selectedLocation: const LatLng(52.2297, 21.0122),
+      );
+
+      final created = (await ReportService.instance.getMyReports())
+          .firstWhere((report) => report.description == description);
+      final reportId = created.id;
+      expect(created.reportPhotos_on_report, hasLength(1));
+      final initialPhotoId = created.reportPhotos_on_report.first.id;
+
+      final replacementPhoto = await createTestPhotoFile();
+      await ReportService.instance.editReport(
+        reportId: reportId,
+        categoryId: 'OSWIETLENIE',
+        description: 'Zgłoszenie po edycji',
+        location: const LatLng(52.23, 21.013),
+        removedPhotoIds: [initialPhotoId],
+        photos: [replacementPhoto],
+      );
+
+      final edited = (await ReportService.instance.getMyReports())
+          .firstWhere((report) => report.id == reportId);
+      expect(edited.description, 'Zgłoszenie po edycji');
+      expect(edited.category.name, 'Oświetlenie');
+      expect(edited.latitude, closeTo(52.23, 0.0001));
+      expect(edited.longitude, closeTo(21.013, 0.0001));
+      expect(edited.reportPhotos_on_report, hasLength(1));
+      expect(
+        edited.reportPhotos_on_report.first.id,
+        isNot(initialPhotoId),
+      );
+
+      await ReportService.instance.deleteReport(reportId);
+
+      final myReports = await ReportService.instance.getMyReports();
+      expect(myReports.any((report) => report.id == reportId), isFalse);
     });
   });
 }

@@ -24,6 +24,13 @@ mutation AddPhoto($reportId: UUID!, $url: String!) @auth(level: USER) {
   })
 }
 
+mutation RemoveReportPhoto($photoId: UUID!) @auth(level: USER) {
+  reportPhoto_deleteMany(where: {
+    id: { eq: $photoId }
+    report: { userId: { eq_expr: "auth.uid" } }
+  })
+}
+
 mutation UpvoteReport($reportId: UUID!) @auth(level: USER) {
   upvote_insert(data: {
     userId_expr: "auth.uid"
@@ -54,4 +61,44 @@ mutation EditComment($commentId: UUID!, $content: String!) @auth(level: USER) {
 
 mutation DeleteComment($commentId: UUID!) @auth(level: USER) {
   comment_delete(id: $commentId)
+}
+
+mutation EditReport(
+  $reportId: UUID!,
+  $category: String!,
+  $desc: String,
+  $lat: Float!,
+  $lng: Float!
+) @auth(level: USER) {
+  report_updateMany(
+    where: {
+      id: { eq: $reportId }
+      userId: { eq_expr: "auth.uid" }
+    }
+    data: {
+      categoryId: $category
+      description: $desc
+      latitude: $lat
+      longitude: $lng
+    }
+  )
+}
+
+mutation DeleteReport($reportId: UUID!) @auth(level: USER) {
+  comment_deleteMany(where: {
+    reportId: { eq: $reportId }
+    report: { userId: { eq_expr: "auth.uid" } }
+  })
+  upvote_deleteMany(where: {
+    reportId: { eq: $reportId }
+    report: { userId: { eq_expr: "auth.uid" } }
+  })
+  reportPhoto_deleteMany(where: {
+    reportId: { eq: $reportId }
+    report: { userId: { eq_expr: "auth.uid" } }
+  })
+  report_deleteMany(where: {
+    id: { eq: $reportId }
+    userId: { eq_expr: "auth.uid" }
+  })
 }

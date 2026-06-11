@@ -57,7 +57,7 @@ class ReportService {
       pinColor: r.category.pinColor,
     ),
     reportPhotos_on_report: r.reportPhotos_on_report.map((p) =>
-      GetReportsReportsReportPhotosOnReport(imageUrl: p.imageUrl)
+      GetReportsReportsReportPhotosOnReport(id: p.id, imageUrl: p.imageUrl)
     ).toList(),
     upvotes_on_report: r.upvotes_on_report.map((u) =>
       GetReportsReportsUpvotesOnReport(
@@ -102,6 +102,82 @@ class ReportService {
       await DefaultConnector.instance
           .addPhoto(reportId: reportId, url: url)
           .execute();
+    }
+  }
+
+  Future<void> editReport({
+    required String reportId,
+    required String categoryId,
+    String? description,
+    required LatLng location,
+    List<File> photos = const [],
+    List<String> removedPhotoIds = const [],
+  }) async {
+    await _authService.ensureUserProfile();
+
+    final urlsToDelete = <String>[];
+    if (removedPhotoIds.isNotEmpty) {
+      final myReports = await getMyReports();
+      final reportMatches = myReports.where((r) => r.id == reportId);
+      if (reportMatches.isEmpty) {
+        throw Exception('Nie znaleziono zgłoszenia.');
+      }
+
+      for (final photo in reportMatches.first.reportPhotos_on_report) {
+        if (removedPhotoIds.contains(photo.id)) {
+          urlsToDelete.add(photo.imageUrl);
+        }
+      }
+    }
+
+    final result = await DefaultConnector.instance
+        .editReport(
+          reportId: reportId,
+          category: categoryId,
+          lat: location.latitude,
+          lng: location.longitude,
+        )
+        .desc(description)
+        .execute();
+
+    if (result.data.report_updateMany == 0) {
+      throw Exception(
+        'Nie znaleziono zgłoszenia lub nie masz uprawnień do jego edycji.',
+      );
+    }
+
+    for (final photoId in removedPhotoIds) {
+      final deleteResult = await DefaultConnector.instance
+          .removeReportPhoto(photoId: photoId)
+          .execute();
+      if (deleteResult.data.reportPhoto_deleteMany == 0) {
+        throw Exception('Nie udało się usunąć zdjęcia lub brak uprawnień.');
+      }
+    }
+
+    for (final url in urlsToDelete) {
+      await StorageService.instance.deleteReportPhoto(url);
+    }
+
+    for (final photo in photos) {
+      final url = await StorageService.instance.uploadReportPhoto(photo);
+      await DefaultConnector.instance
+          .addPhoto(reportId: reportId, url: url)
+          .execute();
+    }
+  }
+
+  Future<void> deleteReport(String reportId) async {
+    await _authService.ensureUserProfile();
+
+    final result = await DefaultConnector.instance
+        .deleteReport(reportId: reportId)
+        .execute();
+
+    if (result.data.report_deleteMany == 0) {
+      throw Exception(
+        'Nie znaleziono zgłoszenia lub nie masz uprawnień do jego usunięcia.',
+      );
     }
   }
 }

@@ -419,6 +419,48 @@ ref.execute();
 ```
 
 
+### RemoveReportPhoto
+#### Required Arguments
+```dart
+String photoId = ...;
+DefaultConnector.instance.removeReportPhoto(
+  photoId: photoId,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<RemoveReportPhotoData, RemoveReportPhotoVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.removeReportPhoto(
+  photoId: photoId,
+);
+RemoveReportPhotoData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String photoId = ...;
+
+final ref = DefaultConnector.instance.removeReportPhoto(
+  photoId: photoId,
+).ref();
+ref.execute();
+```
+
+
 ### UpvoteReport
 #### Required Arguments
 ```dart
@@ -634,6 +676,126 @@ String commentId = ...;
 
 final ref = DefaultConnector.instance.deleteComment(
   commentId: commentId,
+).ref();
+ref.execute();
+```
+
+
+### EditReport
+#### Required Arguments
+```dart
+String reportId = ...;
+String category = ...;
+double lat = ...;
+double lng = ...;
+DefaultConnector.instance.editReport(
+  reportId: reportId,
+  category: category,
+  lat: lat,
+  lng: lng,
+).execute();
+```
+
+#### Optional Arguments
+We return a builder for each query. For EditReport, we created `EditReportBuilder`. For queries and mutations with optional parameters, we return a builder class.
+The builder pattern allows Data Connect to distinguish between fields that haven't been set and fields that have been set to null. A field can be set by calling its respective setter method like below:
+```dart
+class EditReportVariablesBuilder {
+  ...
+   EditReportVariablesBuilder desc(String? t) {
+   _desc.value = t;
+   return this;
+  }
+
+  ...
+}
+DefaultConnector.instance.editReport(
+  reportId: reportId,
+  category: category,
+  lat: lat,
+  lng: lng,
+)
+.desc(desc)
+.execute();
+```
+
+#### Return Type
+`execute()` returns a `OperationResult<EditReportData, EditReportVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.editReport(
+  reportId: reportId,
+  category: category,
+  lat: lat,
+  lng: lng,
+);
+EditReportData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String reportId = ...;
+String category = ...;
+double lat = ...;
+double lng = ...;
+
+final ref = DefaultConnector.instance.editReport(
+  reportId: reportId,
+  category: category,
+  lat: lat,
+  lng: lng,
+).ref();
+ref.execute();
+```
+
+
+### DeleteReport
+#### Required Arguments
+```dart
+String reportId = ...;
+DefaultConnector.instance.deleteReport(
+  reportId: reportId,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<DeleteReportData, DeleteReportVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.deleteReport(
+  reportId: reportId,
+);
+DeleteReportData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String reportId = ...;
+
+final ref = DefaultConnector.instance.deleteReport(
+  reportId: reportId,
 ).ref();
 ref.execute();
 ```

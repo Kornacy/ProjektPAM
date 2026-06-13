@@ -1,7 +1,20 @@
+import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+DeleteAccountData _deleteAccountData({bool deleted = true}) {
+  return DeleteAccountData(
+    comment_deleteMany: 0,
+    upvote_deleteMany: 0,
+    reportPhoto_deleteMany: 0,
+    report_deleteMany: 0,
+    user_delete: deleted
+        ? DeleteAccountUserDelete(id: 'test-uid')
+        : null,
+  );
+}
 
 void main() {
   group('AuthService.mapAuthError', () {
@@ -56,6 +69,42 @@ void main() {
         throwsA(
           predicate<Exception>(
             (e) => e.toString().contains('Musisz być zalogowany'),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('AuthService.deleteAccount', () {
+    test('throws when user is not signed in', () async {
+      final authService = AuthService.forTesting(
+        firebaseAuth: MockFirebaseAuth(signedIn: false),
+      );
+
+      await expectLater(
+        authService.deleteAccount(),
+        throwsA(
+          predicate<Exception>(
+            (e) => e.toString().contains('Musisz być zalogowany'),
+          ),
+        ),
+      );
+    });
+
+    test('throws when database deletion returns no user row', () async {
+      final authService = AuthService.forTesting(
+        firebaseAuth: MockFirebaseAuth(
+          signedIn: true,
+          mockUser: MockUser(uid: 'test-uid'),
+        ),
+        deleteAccountMutation: () async => _deleteAccountData(deleted: false),
+      );
+
+      await expectLater(
+        authService.deleteAccount(),
+        throwsA(
+          predicate<Exception>(
+            (e) => e.toString().contains('Nie udało się usunąć konta'),
           ),
         ),
       );

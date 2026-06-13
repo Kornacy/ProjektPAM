@@ -25,6 +25,8 @@ part 'edit_report.dart';
 
 part 'delete_report.dart';
 
+part 'delete_account.dart';
+
 part 'get_reports.dart';
 
 part 'get_active_reports.dart';
@@ -96,6 +98,11 @@ class DefaultConnector {
   
   DeleteReportVariablesBuilder deleteReport ({required String reportId, }) {
     return DeleteReportVariablesBuilder(dataConnect, reportId: reportId,);
+  }
+  
+  
+  DeleteAccountVariablesBuilder deleteAccount () {
+    return DeleteAccountVariablesBuilder(dataConnect, );
   }
   
   

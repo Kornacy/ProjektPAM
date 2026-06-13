@@ -49,4 +49,13 @@ class StorageService {
       // Plik mógł już nie istnieć w Storage.
     }
   }
+
+  Future<void> deleteAllUserPhotos(String uid) async {
+    try {
+      final listing = await _storage.ref('reports/$uid').listAll();
+      await Future.wait(listing.items.map((item) => item.delete()));
+    } catch (_) {
+      // Brak folderu lub pliki już usunięte.
+    }
+  }
 }

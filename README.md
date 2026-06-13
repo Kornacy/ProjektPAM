@@ -96,9 +96,13 @@ Pliki z danymi wrażliwymi nie są w repozytorium (patrz `.gitignore`). Trzeba j
 
    Powstanie m.in. `lib/firebase_options.dart`.
 
-3. Skopiuj `google-services.json` do `android/app/google-services.json`.
+3. Pliki `android/app/google-services.json` i `lib/firebase_options.dart` są w `.gitignore` (nie commituj kluczy).
 
 4. W Firebase Console włącz **Authentication** (dostawca Google) oraz **Data Connect** / Storage według potrzeb projektu.
+
+### CI (GitHub Actions)
+
+Testy integracyjne wymagają sekretów `GOOGLE_SERVICES_JSON` i `FIREBASE_OPTIONS_DART`. Instrukcja: [`docs/CI-SECRETS.md`](docs/CI-SECRETS.md).
 
 ### 2. Google Maps (Android)
 
@@ -112,14 +116,13 @@ Klucz musi mieć włączone **Maps SDK for Android**. W Google Cloud Console ogr
 
 ### 3. Emulator Firebase (opcjonalnie)
 
-W `lib/app/app.dart` można włączyć Data Connect Emulator:
+Emulatory włączasz przy uruchomieniu:
 
-```dart
-const bool _useEmulator = true;
-const String _emulatorHost = 'adres_ip_komputera'; // np. 192.168.1.13
+```bash
+flutter run --dart-define=USE_FIREBASE_EMULATOR=true --dart-define=EMULATOR_HOST=192.168.1.13
 ```
 
-Dla produkcji ustaw `_useEmulator` na `false`.
+Konfiguracja: `lib/app/firebase_bootstrap.dart`.
 
 ### 4. Data Connect (backend)
 

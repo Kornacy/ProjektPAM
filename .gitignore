@@ -43,42 +43,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-# Firebase - logi i lokalny cache
+# Firebase - logi i lokalny cache 
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
 .dataconnect/
-# Firebase - stare pliki konfiguracyjne 
 google-services.json
 GoogleService-Info.plist
-
-# Zmienne środowiskowe i sekrety 
+# Zmienne środowiskowe i sekrety
 .env
 .env.*
 *.env
 
-# Lokalne dane emulatora Firebase 
+# Firebase — klucze klienckie (w CI: GitHub Secrets, lokalnie: flutterfire configure)
+lib/firebase_options.dart
+android/app/google-services.json
+
+# Lokalne dane emulatora Firebase
 /emulator-data/
 /firebase-export/
-lib/firebase_options.dart
 
-# Pliki konfiguracyjne MacOS 
+# iOS (projekt bez iOS — ignoruj plist jeśli pojawi się lokalnie)
+ios/Runner/GoogleService-Info.plist
+
+# Pliki konfiguracyjne MacOS
 .AppleDouble
 .LSOverride
-
-lib/firebase_options.dart
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-firebase.json
-.env
-
-# Firebase
-lib/firebase_options.dart
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-firebase.json
-.firebaserc
-.env
 
 # Flutter
 .dart_tool/
@@ -100,3 +90,6 @@ ios/.symlinks/
 .idea/
 .vscode/
 *.iml
+
+# Node (emulator seed scripts)
+scripts/node_modules/

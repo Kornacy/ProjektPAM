@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
@@ -18,9 +19,20 @@ class UpvoteDisplayState {
 }
 
 class ReportService {
-  ReportService._();
+  ReportService._({AuthService? authService})
+      : _authService = authService ?? AuthService.instance;
+
   static final ReportService instance = ReportService._();
 
+  @visibleForTesting
+  factory ReportService.forTesting({AuthService? authService}) =>
+      ReportService._(authService: authService);
+
+  final AuthService _authService;
+
+  Future<List<GetReportsReports>> getReports() async {
+    final result = await DefaultConnector.instance.getReports().execute();
+    return result.data.reports;
   final Map<String, UpvoteDisplayState> _upvoteCache = {};
 
   UpvoteDisplayState? upvoteStateFor(String reportId) =>
@@ -107,12 +119,12 @@ class ReportService {
     return result.data.reports;
   }
   Future<void> upvoteReport(String reportId) async {
-    await AuthService.instance.ensureUserProfile();
+    await _authService.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
   }
 
   Future<void> removeUpvote(String reportId) async {
-    await AuthService.instance.ensureUserProfile();
+    await _authService.ensureUserProfile();
     await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
   }
 

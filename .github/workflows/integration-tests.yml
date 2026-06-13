@@ -1,0 +1,87 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+      - backend-test
+  pull_request:
+    branches:
+      - main
+      - backend-test
+
+jobs:
+  integration:
+    name: Firebase emulator + Android integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Firebase project config (no secrets)
+        run: |
+          test -f firebase.json || (echo "::error::Brak firebase.json w repozytorium" && exit 1)
+          test -f .firebaserc || (echo "::error::Brak .firebaserc w repozytorium" && exit 1)
+
+      - name: Create Firebase client config from GitHub Secrets
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::error::Sekret GOOGLE_SERVICES_JSON nie jest ustawiony. Zobacz docs/CI-SECRETS.md"
+            exit 1
+          fi
+          if [ -z "$FIREBASE_OPTIONS_DART" ]; then
+            echo "::error::Sekret FIREBASE_OPTIONS_DART nie jest ustawiony. Zobacz docs/CI-SECRETS.md"
+            exit 1
+          fi
+          mkdir -p android/app lib
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          printf '%s' "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+          test -s android/app/google-services.json
+          test -s lib/firebase_options.dart
+
+      - name: Cache Firebase emulators
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('firebase.json') }}
+          restore-keys: |
+            firebase-emulators-${{ runner.os }}-
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Install emulator seed script dependencies
+        run: npm install --prefix scripts
+
+      - name: Run integration tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            cd "$GITHUB_WORKSPACE"
+            chmod +x scripts/ci-run-integration-tests.sh
+            adb wait-for-device
+            firebase emulators:exec --only auth,dataconnect,storage --project projekt-pam-city-issues "bash scripts/ci-run-integration-tests.sh"

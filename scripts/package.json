@@ -1,0 +1,11 @@
+{
+  "name": "city-issues-emulator-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node seed-emulator.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
+  }
+}

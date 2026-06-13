@@ -1,11 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 
 class CommentService {
-  CommentService._();
+  CommentService._({FirebaseAuth? firebaseAuth})
+      : _firebaseAuthOverride = firebaseAuth;
+
   static final CommentService instance = CommentService._();
 
-  String? get _currentUserId => FirebaseAuth.instance.currentUser?.uid;
+  @visibleForTesting
+  factory CommentService.forTesting({FirebaseAuth? firebaseAuth}) =>
+      CommentService._(firebaseAuth: firebaseAuth);
+
+  final FirebaseAuth? _firebaseAuthOverride;
+
+  FirebaseAuth get _firebaseAuth =>
+      _firebaseAuthOverride ?? FirebaseAuth.instance;
+
+  String? get _currentUserId => _firebaseAuth.currentUser?.uid;
 
   // ─── Pobieranie ────────────────────────────────────────────────────────────
 

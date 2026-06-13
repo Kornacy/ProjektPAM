@@ -30,9 +30,6 @@ class ReportService {
 
   final AuthService _authService;
 
-  Future<List<GetReportsReports>> getReports() async {
-    final result = await DefaultConnector.instance.getReports().execute();
-    return result.data.reports;
   final Map<String, UpvoteDisplayState> _upvoteCache = {};
 
   UpvoteDisplayState? upvoteStateFor(String reportId) =>

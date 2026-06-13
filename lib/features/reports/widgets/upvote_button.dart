@@ -33,9 +33,26 @@ class _UpvoteButtonState extends State<UpvoteButton>
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScale;
 
+  void _applyCachedState() {
+    final cached = ReportService.instance.upvoteStateFor(widget.reportId);
+    if (cached != null) {
+      _count = cached.count;
+      _hasUpvoted = cached.hasUpvoted;
+    }
+  }
+
+  void _persistState() {
+    ReportService.instance.cacheUpvoteState(
+      widget.reportId,
+      count: _count,
+      hasUpvoted: _hasUpvoted,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _applyCachedState();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -63,6 +80,10 @@ class _UpvoteButtonState extends State<UpvoteButton>
   @override
   void didUpdateWidget(UpvoteButton oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (ReportService.instance.upvoteStateFor(widget.reportId) != null) {
+      _applyCachedState();
+      return;
+    }
     if (oldWidget.initialCount != widget.initialCount) {
       _count = widget.initialCount;
     }
@@ -96,6 +117,7 @@ class _UpvoteButtonState extends State<UpvoteButton>
           _hasUpvoted = false;
           _count = (_count - 1).clamp(0, 1 << 30);
         });
+        _persistState();
       } else {
         final upvote = widget.onUpvote ?? ReportService.instance.upvoteReport;
         await upvote(widget.reportId);
@@ -104,6 +126,7 @@ class _UpvoteButtonState extends State<UpvoteButton>
           _hasUpvoted = true;
           _count++;
         });
+        _persistState();
         _pulseController.forward(from: 0);
       }
     } catch (e) {

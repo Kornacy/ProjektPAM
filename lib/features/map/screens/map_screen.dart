@@ -49,7 +49,8 @@ class MapScreenState extends State<MapScreen> {
     _init();
   }
 
-  Future<void> refreshReports() => _loadReports();
+  Future<void> refreshReports({bool forceRefresh = false}) =>
+      _loadReports(forceRefresh: forceRefresh);
 
   Future<void> _init() async {
     await Future.wait([_initLocation(), _loadReports(), _loadCategories()]);
@@ -76,9 +77,10 @@ class MapScreenState extends State<MapScreen> {
     await _fetchCurrentLocation();
   }
 
-  Future<void> _loadReports() async {
+  Future<void> _loadReports({bool forceRefresh = false}) async {
     try {
-      final reports = await ReportService.instance.getReports();
+      final reports =
+          await ReportService.instance.getReports(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _reports = reports;
@@ -193,7 +195,7 @@ class MapScreenState extends State<MapScreen> {
             tooltip: 'Odśwież zgłoszenia',
             onPressed: () {
               setState(() => _isLoading = true);
-              _loadReports();
+              _loadReports(forceRefresh: true);
             },
           ),
         ],

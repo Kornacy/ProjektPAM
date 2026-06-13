@@ -41,4 +41,12 @@ class StorageService {
     final TaskSnapshot snapshot = await task;
     return await snapshot.ref.getDownloadURL();
   }
+
+  Future<void> deleteReportPhoto(String imageUrl) async {
+    try {
+      await _storage.refFromURL(imageUrl).delete();
+    } catch (_) {
+      // Plik mógł już nie istnieć w Storage.
+    }
+  }
 }

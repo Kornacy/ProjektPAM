@@ -13,6 +13,7 @@ query GetReports @auth(level: PUBLIC) {
       pinColor
     }
     reportPhotos_on_report {
+      id
       imageUrl
     }
     upvotes_on_report {
@@ -39,6 +40,7 @@ query GetActiveReports @auth(level: PUBLIC) {
       pinColor
     }
     reportPhotos_on_report {
+      id
       imageUrl
     }
     upvotes_on_report {
@@ -65,6 +67,7 @@ query GetMyReports @auth(level: USER) {
       pinColor
     }
     reportPhotos_on_report {
+      id
       imageUrl
     }
     upvotes_on_report {

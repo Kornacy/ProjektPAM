@@ -4,13 +4,13 @@
 DefaultConnector.instance.UpsertUser(upsertUserVariables).execute();
 DefaultConnector.instance.CreateReport(createReportVariables).execute();
 DefaultConnector.instance.AddPhoto(addPhotoVariables).execute();
+DefaultConnector.instance.RemoveReportPhoto(removeReportPhotoVariables).execute();
 DefaultConnector.instance.UpvoteReport(upvoteReportVariables).execute();
 DefaultConnector.instance.RemoveUpvote(removeUpvoteVariables).execute();
 DefaultConnector.instance.AddComment(addCommentVariables).execute();
 DefaultConnector.instance.EditComment(editCommentVariables).execute();
 DefaultConnector.instance.DeleteComment(deleteCommentVariables).execute();
-DefaultConnector.instance.GetReports().execute();
-DefaultConnector.instance.GetActiveReports().execute();
+DefaultConnector.instance.EditReport(editReportVariables).execute();
 
 ```
 
@@ -23,7 +23,7 @@ Optional fields can be discovered based on classes that have `Optional` object t
 This is an example of a mutation with an optional field:
 
 ```dart
-await DefaultConnector.instance.CreateReport({ ... })
+await DefaultConnector.instance.EditReport({ ... })
 .desc(...)
 .execute();
 ```

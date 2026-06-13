@@ -20,16 +20,28 @@ class UpvoteDisplayState {
 }
 
 class ReportService {
-  ReportService._({AuthService? authService})
-      : _authService = authService ?? AuthService.instance;
+  ReportService._({
+    AuthService? authService,
+    Future<void> Function(String reportId)? onUpvoteNotify,
+  })  : _authService = authService ?? AuthService.instance,
+        _onUpvoteNotify = onUpvoteNotify ??
+            ((reportId) =>
+                NotificationService.instance.notifyUpvoteOnReport(reportId));
 
   static final ReportService instance = ReportService._();
 
   @visibleForTesting
-  factory ReportService.forTesting({AuthService? authService}) =>
-      ReportService._(authService: authService);
+  factory ReportService.forTesting({
+    AuthService? authService,
+    Future<void> Function(String reportId)? onUpvoteNotify,
+  }) =>
+      ReportService._(
+        authService: authService,
+        onUpvoteNotify: onUpvoteNotify,
+      );
 
   final AuthService _authService;
+  final Future<void> Function(String reportId) _onUpvoteNotify;
 
   final Map<String, UpvoteDisplayState> _upvoteCache = {};
 
@@ -119,7 +131,7 @@ class ReportService {
   Future<void> upvoteReport(String reportId) async {
     await _authService.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
-    await NotificationService.instance.notifyUpvoteOnReport(reportId);
+    await _onUpvoteNotify(reportId);
   }
 
   Future<void> removeUpvote(String reportId) async {

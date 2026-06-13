@@ -23,6 +23,7 @@ class GetActiveReportsReports {
   final double longitude;
   final String? description;
   final String status;
+  final Timestamp createdAt;
   final GetActiveReportsReportsCategory category;
   final List<GetActiveReportsReportsReportPhotosOnReport> reportPhotos_on_report;
   final List<GetActiveReportsReportsUpvotesOnReport> upvotes_on_report;
@@ -33,6 +34,7 @@ class GetActiveReportsReports {
   longitude = nativeFromJson<double>(json['longitude']),
   description = json['description'] == null ? null : nativeFromJson<String>(json['description']),
   status = nativeFromJson<String>(json['status']),
+  createdAt = Timestamp.fromJson(json['createdAt']),
   category = GetActiveReportsReportsCategory.fromJson(json['category']),
   reportPhotos_on_report = (json['reportPhotos_on_report'] as List<dynamic>)
         .map((e) => GetActiveReportsReportsReportPhotosOnReport.fromJson(e))
@@ -55,13 +57,14 @@ class GetActiveReportsReports {
     longitude == otherTyped.longitude && 
     description == otherTyped.description && 
     status == otherTyped.status && 
+    createdAt == otherTyped.createdAt && 
     category == otherTyped.category && 
     reportPhotos_on_report == otherTyped.reportPhotos_on_report && 
     upvotes_on_report == otherTyped.upvotes_on_report;
     
   }
   @override
-  int get hashCode => Object.hashAll([id.hashCode, latitude.hashCode, longitude.hashCode, description.hashCode, status.hashCode, category.hashCode, reportPhotos_on_report.hashCode, upvotes_on_report.hashCode]);
+  int get hashCode => Object.hashAll([id.hashCode, latitude.hashCode, longitude.hashCode, description.hashCode, status.hashCode, createdAt.hashCode, category.hashCode, reportPhotos_on_report.hashCode, upvotes_on_report.hashCode]);
   
 
   Map<String, dynamic> toJson() {
@@ -73,6 +76,7 @@ class GetActiveReportsReports {
       json['description'] = nativeToJson<String?>(description);
     }
     json['status'] = nativeToJson<String>(status);
+    json['createdAt'] = createdAt.toJson();
     json['category'] = category.toJson();
     json['reportPhotos_on_report'] = reportPhotos_on_report.map((e) => e.toJson()).toList();
     json['upvotes_on_report'] = upvotes_on_report.map((e) => e.toJson()).toList();
@@ -85,6 +89,7 @@ class GetActiveReportsReports {
     required this.longitude,
     this.description,
     required this.status,
+    required this.createdAt,
     required this.category,
     required this.reportPhotos_on_report,
     required this.upvotes_on_report,

@@ -1,5 +1,6 @@
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,6 +25,13 @@ void main() {
     test('categoryIcon returns icon for known names', () {
       expect(ReportUtils.categoryIcon('road'), Icons.add_road);
       expect(ReportUtils.categoryIcon('unknown'), Icons.report_problem_outlined);
+    });
+
+    test('formatDateTime formats timestamp in local time', () {
+      final formatted = ReportUtils.formatDateTime(Timestamp(0, 1_704_067_200));
+      expect(formatted, contains('2024'));
+      expect(formatted, contains('.'));
+      expect(formatted, contains(':'));
     });
 
     test('upvoteCount ignores orphaned upvotes without user', () {

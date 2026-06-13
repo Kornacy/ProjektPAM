@@ -28,15 +28,16 @@ class MyReportsScreenState extends State<MyReportsScreen> {
     _load();
   }
 
-  Future<void> refresh() => _load();
+  Future<void> refresh() => _load(forceRefresh: true);
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      final reports = await ReportService.instance.getMyReports();
+      final reports =
+          await ReportService.instance.getMyReports(forceRefresh: forceRefresh);
       if (mounted) setState(() => _reports = reports);
     } catch (e) {
       if (mounted) setState(() => _error = UserFacingError.loadMyReports(e));
@@ -54,7 +55,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Odśwież listę',
-            onPressed: _load,
+            onPressed: () => _load(forceRefresh: true),
           ),
         ],
       ),
@@ -64,7 +65,9 @@ class MyReportsScreenState extends State<MyReportsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) return const AppLoading(message: 'Ładowanie zgłoszeń...');
-    if (_error != null) return AppError(message: _error!, onRetry: _load);
+    if (_error != null) {
+      return AppError(message: _error!, onRetry: () => _load(forceRefresh: true));
+    }
     if (_reports == null || _reports!.isEmpty) {
       return const AppEmpty(
         title: 'Brak zgłoszeń',
@@ -74,7 +77,7 @@ class MyReportsScreenState extends State<MyReportsScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.separated(
         padding: ScrollPadding.list(context, includeNavBar: true).copyWith(top: 8),
         itemCount: _reports!.length,

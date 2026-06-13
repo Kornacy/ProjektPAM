@@ -92,4 +92,8 @@ ios/.symlinks/
 *.iml
 
 # Node (emulator seed scripts)
-scripts/node_modules/
+scripts/node_modules
+
+# Cloud Functions
+functions/node_modules
+functions/lib/

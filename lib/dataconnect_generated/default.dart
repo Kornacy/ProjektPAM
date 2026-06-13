@@ -3,7 +3,21 @@ import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
+part 'get_upvote_notification_context.dart';
+
+part 'get_reports.dart';
+
+part 'get_active_reports.dart';
+
+part 'get_my_reports.dart';
+
+part 'get_categories.dart';
+
+part 'get_report_comments.dart';
+
 part 'upsert_user.dart';
+
+part 'update_fcm_token.dart';
 
 part 'create_report.dart';
 
@@ -25,16 +39,6 @@ part 'edit_report.dart';
 
 part 'delete_report.dart';
 
-part 'get_reports.dart';
-
-part 'get_active_reports.dart';
-
-part 'get_my_reports.dart';
-
-part 'get_categories.dart';
-
-part 'get_report_comments.dart';
-
 
 
 
@@ -44,8 +48,43 @@ part 'get_report_comments.dart';
 class DefaultConnector {
   
   
+  GetUpvoteNotificationContextVariablesBuilder getUpvoteNotificationContext ({required String reportId, required String upvoterId, }) {
+    return GetUpvoteNotificationContextVariablesBuilder(dataConnect, reportId: reportId,upvoterId: upvoterId,);
+  }
+  
+  
+  GetReportsVariablesBuilder getReports () {
+    return GetReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetActiveReportsVariablesBuilder getActiveReports () {
+    return GetActiveReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetMyReportsVariablesBuilder getMyReports () {
+    return GetMyReportsVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetCategoriesVariablesBuilder getCategories () {
+    return GetCategoriesVariablesBuilder(dataConnect, );
+  }
+  
+  
+  GetReportCommentsVariablesBuilder getReportComments ({required String reportId, }) {
+    return GetReportCommentsVariablesBuilder(dataConnect, reportId: reportId,);
+  }
+  
+  
   UpsertUserVariablesBuilder upsertUser ({required String email, }) {
     return UpsertUserVariablesBuilder(dataConnect, email: email,);
+  }
+  
+  
+  UpdateFcmTokenVariablesBuilder updateFcmToken ({required String token, }) {
+    return UpdateFcmTokenVariablesBuilder(dataConnect, token: token,);
   }
   
   
@@ -96,31 +135,6 @@ class DefaultConnector {
   
   DeleteReportVariablesBuilder deleteReport ({required String reportId, }) {
     return DeleteReportVariablesBuilder(dataConnect, reportId: reportId,);
-  }
-  
-  
-  GetReportsVariablesBuilder getReports () {
-    return GetReportsVariablesBuilder(dataConnect, );
-  }
-  
-  
-  GetActiveReportsVariablesBuilder getActiveReports () {
-    return GetActiveReportsVariablesBuilder(dataConnect, );
-  }
-  
-  
-  GetMyReportsVariablesBuilder getMyReports () {
-    return GetMyReportsVariablesBuilder(dataConnect, );
-  }
-  
-  
-  GetCategoriesVariablesBuilder getCategories () {
-    return GetCategoriesVariablesBuilder(dataConnect, );
-  }
-  
-  
-  GetReportCommentsVariablesBuilder getReportComments ({required String reportId, }) {
-    return GetReportCommentsVariablesBuilder(dataConnect, reportId: reportId,);
   }
   
 

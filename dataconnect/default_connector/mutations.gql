@@ -7,6 +7,10 @@ mutation UpsertUser($email: String!, $username: String, $photoUrl: String) @auth
   })
 }
 
+mutation UpdateFcmToken($token: String!) @auth(level: USER) {
+  user_update(id_expr: "auth.uid", data: { fcmToken: $token })
+}
+
 mutation CreateReport($category: String!, $desc: String, $lat: Float!, $lng: Float!)@auth(level: USER){
     report_insert(data: {
         userId_expr: "auth.uid"

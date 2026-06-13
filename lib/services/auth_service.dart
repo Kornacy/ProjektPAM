@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../dataconnect_generated/default.dart';
+import 'notification_service.dart';
 
 class AuthService {
   AuthService._({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
@@ -160,5 +161,6 @@ class AuthService {
         .username(user.displayName ?? user.email?.split('@').first ?? 'Użytkownik')
         .photoUrl(user.photoURL ?? '')
         .execute();
+    await NotificationService.instance.syncToken();
   }
 }

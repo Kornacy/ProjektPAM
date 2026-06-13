@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/auth_service.dart';
+import 'package:city_issues/services/notification_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/storage_service.dart';
 
@@ -118,6 +119,7 @@ class ReportService {
   Future<void> upvoteReport(String reportId) async {
     await _authService.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+    await NotificationService.instance.notifyUpvoteOnReport(reportId);
   }
 
   Future<void> removeUpvote(String reportId) async {

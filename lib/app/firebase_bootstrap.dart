@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 
 /// Shared Firebase initialization for the app and integration tests.
@@ -33,6 +34,11 @@ class FirebaseBootstrap {
   static const storageEmulatorPort = int.fromEnvironment(
     'STORAGE_EMULATOR_PORT',
     defaultValue: 9199,
+  );
+
+  static const functionsEmulatorPort = int.fromEnvironment(
+    'FUNCTIONS_EMULATOR_PORT',
+    defaultValue: 5001,
   );
 
   /// Resolves emulator host based on platform when [EMULATOR_HOST] is not set.
@@ -78,6 +84,11 @@ class FirebaseBootstrap {
     await FirebaseStorage.instance.useStorageEmulator(
       host,
       storageEmulatorPort,
+    );
+
+    FirebaseFunctions.instance.useFunctionsEmulator(
+      host,
+      functionsEmulatorPort,
     );
 
     _emulatorConfigured = true;

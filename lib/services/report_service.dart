@@ -117,6 +117,20 @@ class ReportService {
     _reconcileUpvoteCache(reports);
     return reports;
   }
+
+  Future<GetReportsReports?> findReportById(
+    String reportId, {
+    bool forceRefresh = true,
+  }) async {
+    final reports = await getReports(forceRefresh: forceRefresh);
+    for (final report in reports) {
+      if (report.id == reportId) {
+        return report;
+      }
+    }
+    return null;
+  }
+
   Future<List<GetCategoriesCategories>> getCategories() async{
     final result = await DefaultConnector.instance.getCategories().execute();
     return result.data.categories;

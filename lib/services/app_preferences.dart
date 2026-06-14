@@ -8,6 +8,7 @@ class AppPreferences extends ChangeNotifier {
   static const String _themeModeKey = 'theme_mode';
   static const String _accentColorKey = 'accent_color';
   static const String _onboardingKey = 'onboarding_completed';
+  static const String _notificationsEnabledKey = 'notifications_enabled';
 
   static const Color defaultAccent = Color(0xFF1565C0);
 
@@ -24,11 +25,13 @@ class AppPreferences extends ChangeNotifier {
   Color _accentColor = defaultAccent;
   bool _loaded = false;
   bool _onboardingCompleted = false;
+  bool _notificationsEnabled = true;
 
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
   bool get isLoaded => _loaded;
   bool get hasCompletedOnboarding => _onboardingCompleted;
+  bool get notificationsEnabled => _notificationsEnabled;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -41,8 +44,17 @@ class AppPreferences extends ChangeNotifier {
       _accentColor = Color(accentValue);
     }
     _onboardingCompleted = prefs.getBool(_onboardingKey) ?? false;
+    _notificationsEnabled = prefs.getBool(_notificationsEnabledKey) ?? true;
     _loaded = true;
     notifyListeners();
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    if (_notificationsEnabled == enabled) return;
+    _notificationsEnabled = enabled;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsEnabledKey, enabled);
   }
 
   Future<void> setOnboardingCompleted() async {

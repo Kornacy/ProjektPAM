@@ -1,8 +1,10 @@
+import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/services/notification_service.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 NotificationSettings _notificationSettings(AuthorizationStatus status) {
   return NotificationSettings(
@@ -32,6 +34,18 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
 
   int requestPermissionCalls = 0;
   int getTokenCalls = 0;
+  int deleteTokenCalls = 0;
+
+  @override
+  Future<void> deleteToken() async {
+    deleteTokenCalls++;
+    token = null;
+  }
+
+  @override
+  Future<NotificationSettings> getNotificationSettings() async {
+    return _notificationSettings(authorizationStatus);
+  }
 
   @override
   Future<NotificationSettings> requestPermission({
@@ -167,6 +181,84 @@ void main() {
       );
 
       await expectLater(service.syncToken(), completes);
+    });
+
+    test('does not persist token when notifications disabled in app', () async {
+      SharedPreferences.setMockInitialValues({'notifications_enabled': false});
+      final prefs = AppPreferences.instance;
+      await prefs.load();
+
+      final messaging = FakeFirebaseMessaging();
+      String? savedToken;
+
+      final service = NotificationService.forTesting(
+        messaging: messaging,
+        authService: AuthService.forTesting(
+          firebaseAuth: MockFirebaseAuth(signedIn: true),
+        ),
+        appPreferences: prefs,
+        persistFcmToken: (token) async => savedToken = token,
+      );
+
+      await service.syncToken();
+
+      expect(messaging.requestPermissionCalls, 0);
+      expect(savedToken, isNull);
+    });
+  });
+
+  group('NotificationService report notification taps', () {
+    test('invokes handler for upvote payload', () {
+      String? openedReportId;
+      final service = NotificationService.forTesting(
+        messaging: FakeFirebaseMessaging(),
+      );
+
+      service.setOnReportOpened((reportId) => openedReportId = reportId);
+      service.handleReportNotificationData(
+        const {'type': 'upvote', 'reportId': 'report-42'},
+      );
+
+      expect(openedReportId, 'report-42');
+    });
+
+    test('stores pending report id until handler is registered', () {
+      String? openedReportId;
+      final service = NotificationService.forTesting(
+        messaging: FakeFirebaseMessaging(),
+      );
+
+      service.handleReportNotificationData(
+        const {'type': 'upvote', 'reportId': 'report-pending'},
+      );
+      service.setOnReportOpened((reportId) => openedReportId = reportId);
+
+      expect(openedReportId, 'report-pending');
+    });
+
+    test('ignores unknown notification types', () {
+      String? openedReportId;
+      final service = NotificationService.forTesting(
+        messaging: FakeFirebaseMessaging(),
+      );
+
+      service.setOnReportOpened((reportId) => openedReportId = reportId);
+      service.handleReportNotificationData(
+        const {'type': 'comment', 'reportId': 'report-1'},
+      );
+
+      expect(openedReportId, isNull);
+    });
+  });
+
+  group('NotificationService.disablePushRegistration', () {
+    test('deletes FCM token', () async {
+      final messaging = FakeFirebaseMessaging();
+      final service = NotificationService.forTesting(messaging: messaging);
+
+      await service.disablePushRegistration();
+
+      expect(messaging.deleteTokenCalls, 1);
     });
   });
 

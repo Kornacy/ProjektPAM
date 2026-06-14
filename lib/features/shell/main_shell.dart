@@ -9,6 +9,8 @@ import 'package:city_issues/features/reports/screens/my_reports_screen.dart';
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/features/settings/screens/settings_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
+import 'package:city_issues/services/notification_service.dart';
+import 'package:city_issues/services/report_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -51,13 +53,36 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    NotificationService.instance.setOnReportOpened(_openReportFromNotification);
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowOnboarding());
   }
 
   @override
   void dispose() {
+    NotificationService.instance.setOnReportOpened(null);
     _settingsScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openReportFromNotification(String reportId) async {
+    if (!mounted) return;
+
+    _shellNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    setState(() => _stackIndex = 0);
+
+    final report = await ReportService.instance.findReportById(reportId);
+    if (!mounted) return;
+
+    if (report == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nie udało się otworzyć zgłoszenia z powiadomienia.'),
+        ),
+      );
+      return;
+    }
+
+    openReportDetail(report);
   }
 
   Future<void> _maybeShowOnboarding() async {

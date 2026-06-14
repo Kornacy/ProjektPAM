@@ -34,14 +34,8 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   bool _hasNetwork(List<ConnectivityResult> results) {
-    if (results.isEmpty) return false;
-    return results.any(
-      (result) =>
-          result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.ethernet ||
-          result == ConnectivityResult.vpn,
-    );
+    if (results.isEmpty) return true;
+    return results.any((result) => result != ConnectivityResult.none);
   }
 
   @override

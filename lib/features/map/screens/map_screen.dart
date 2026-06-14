@@ -36,6 +36,7 @@ class MapScreenState extends State<MapScreen> {
   List<GetReportsReports> _reports = [];
   List<GetCategoriesCategories> _categories = [];
   Set<String> _enabledCategoryIds = {};
+  bool _categoriesLoaded = false;
   bool _reportSheetOpen = false;
 
   static const CameraPosition _defaultPosition = CameraPosition(
@@ -53,7 +54,9 @@ class MapScreenState extends State<MapScreen> {
       _loadReports(forceRefresh: forceRefresh);
 
   Future<void> _init() async {
-    await Future.wait([_initLocation(), _loadReports(), _loadCategories()]);
+    await _initLocation();
+    await _loadCategories();
+    await _loadReports();
   }
 
   Future<void> _loadCategories() async {
@@ -63,9 +66,12 @@ class MapScreenState extends State<MapScreen> {
       setState(() {
         _categories = categories;
         _enabledCategoryIds = categories.map((c) => c.id).toSet();
+        _categoriesLoaded = true;
       });
       _applyFilters();
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _categoriesLoaded = true);
+    }
   }
 
   Future<void> _initLocation() async {
@@ -96,6 +102,8 @@ class MapScreenState extends State<MapScreen> {
 
   void _applyFilters() {
     final filtered = _reports.where((r) {
+      if (!_categoriesLoaded) return true;
+      if (_enabledCategoryIds.isEmpty) return false;
       final id = _categoryIdForReport(r);
       return _enabledCategoryIds.contains(id);
     }).toList();

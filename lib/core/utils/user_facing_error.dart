@@ -1,4 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:city_issues/services/offline/offline_exception.dart';
 
 class UserFacingError {
   UserFacingError._();
@@ -7,6 +8,9 @@ class UserFacingError {
     Object error, {
     String fallback = 'Coś poszło nie tak. Spróbuj ponownie.',
   }) {
+    if (error is OfflineException) {
+      return error.message;
+    }
     if (error is GoogleSignInException) {
       return googleSignIn(error) ?? fallback;
     }

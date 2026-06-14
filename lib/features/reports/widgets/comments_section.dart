@@ -85,16 +85,24 @@ class _CommentsSectionState extends State<CommentsSection> {
 
     setState(() => _isSubmitting = true);
     try {
-      await _commentService.addComment(
+      final commentId = await _commentService.addComment(
         reportId: widget.reportId,
         content: content,
       );
       if (!mounted) return;
       _contentController.clear();
-      await _loadComments();
+      if (commentId != CommentService.offlinePendingId) {
+        await _loadComments();
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Komentarz został dodany.')),
+        SnackBar(
+          content: Text(
+            commentId == CommentService.offlinePendingId
+                ? 'Komentarz zostanie wysłany po odzyskaniu połączenia.'
+                : 'Komentarz został dodany.',
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;

@@ -35,7 +35,10 @@ class _OfflineBannerState extends State<OfflineBanner> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: ConnectivityService.instance,
+      listenable: Listenable.merge([
+        ConnectivityService.instance,
+        OfflineSyncService.instance,
+      ]),
       builder: (context, _) {
         final isOnline = ConnectivityService.instance.isOnline;
         if (isOnline && _pendingCount == 0) {
@@ -56,29 +59,29 @@ class _OfflineBannerState extends State<OfflineBanner> {
 
         return Material(
           color: background,
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    isOnline ? Icons.cloud_sync_outlined : Icons.cloud_off_outlined,
-                    color: foreground,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w600,
-                      ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                Icon(
+                  isOnline
+                      ? Icons.cloud_sync_outlined
+                      : Icons.cloud_off_outlined,
+                  color: foreground,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );

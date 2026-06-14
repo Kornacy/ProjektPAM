@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:city_issues/dataconnect_generated/default.dart';
@@ -27,7 +28,7 @@ class PendingOperation {
   final DateTime createdAt;
 }
 
-class OfflineSyncService {
+class OfflineSyncService extends ChangeNotifier {
   OfflineSyncService._({
     LocalDatabase? database,
     ConnectivityService? connectivity,
@@ -71,13 +72,15 @@ class OfflineSyncService {
         'created_at': DateTime.now().millisecondsSinceEpoch,
       },
     );
+    notifyListeners();
   }
 
   Future<int> pendingCount() async {
     if (!_database.isAvailable) return 0;
 
     final db = _database.requireDb();
-    final result = await db.rawQuery('SELECT COUNT(*) AS count FROM pending_operations');
+    final result =
+        await db.rawQuery('SELECT COUNT(*) AS count FROM pending_operations');
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
@@ -96,7 +99,8 @@ class OfflineSyncService {
         id: row['id']! as int,
         type: PendingOperationType.values.byName(row['type']! as String),
         payload: Map<String, dynamic>.from(payload as Map),
-        createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at']! as int),
+        createdAt:
+            DateTime.fromMillisecondsSinceEpoch(row['created_at']! as int),
       );
     }).toList();
   }
@@ -123,6 +127,7 @@ class OfflineSyncService {
       }
     } finally {
       _syncInProgress = false;
+      notifyListeners();
     }
   }
 
@@ -130,10 +135,14 @@ class OfflineSyncService {
     switch (operation.type) {
       case PendingOperationType.upvote:
         final reportId = operation.payload['reportId'] as String;
-        await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+        await DefaultConnector.instance
+            .upvoteReport(reportId: reportId)
+            .execute();
       case PendingOperationType.removeUpvote:
         final reportId = operation.payload['reportId'] as String;
-        await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
+        await DefaultConnector.instance
+            .removeUpvote(reportId: reportId)
+            .execute();
       case PendingOperationType.addComment:
         final reportId = operation.payload['reportId'] as String;
         final content = operation.payload['content'] as String;

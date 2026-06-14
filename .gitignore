@@ -89,6 +89,7 @@ ios/.symlinks/
 # IDE
 .idea/
 .vscode/
+.cursor/
 *.iml
 
 # Node (emulator seed scripts)

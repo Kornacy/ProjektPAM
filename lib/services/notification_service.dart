@@ -1,13 +1,31 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/app_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+enum TokenSyncStatus {
+  skipped,
+  permissionDenied,
+  noToken,
+  saved,
+  profileMissing,
+  failed,
+}
+
+class TokenSyncResult {
+  const TokenSyncResult(this.status, this.message);
+
+  final TokenSyncStatus status;
+  final String message;
+}
 
 /// Rejestruje token FCM i wysyła powiadomienia push (m.in. przy upvote).
 class NotificationService {
@@ -67,6 +85,8 @@ class NotificationService {
 
   void Function(String reportId)? _onReportOpened;
   String? _pendingReportId;
+  void Function()? _onReportsChanged;
+  StreamSubscription<User?>? _authSubscription;
 
   FirebaseMessaging get _messagingClient =>
       _messaging ?? FirebaseMessaging.instance;
@@ -79,6 +99,9 @@ class NotificationService {
       );
 
   bool _initialized = false;
+  TokenSyncResult? _lastTokenSyncResult;
+
+  TokenSyncResult? get lastTokenSyncResult => _lastTokenSyncResult;
 
   void setOnReportOpened(void Function(String reportId)? handler) {
     _onReportOpened = handler;
@@ -87,6 +110,10 @@ class NotificationService {
       _pendingReportId = null;
       handler(pending);
     }
+  }
+
+  void setOnReportsChanged(void Function()? handler) {
+    _onReportsChanged = handler;
   }
 
   Future<AuthorizationStatus> systemPermissionStatus() async {
@@ -107,6 +134,11 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleRemoteMessageTap);
     _messagingClient.onTokenRefresh.listen((_) => syncToken());
+    _authSubscription ??= _authService.authStateChanges.listen((user) {
+      if (user != null) {
+        syncToken();
+      }
+    });
 
     _initialized = true;
 
@@ -118,34 +150,114 @@ class NotificationService {
     await syncToken();
   }
 
-  Future<void> syncToken() async {
+  Future<TokenSyncResult> syncToken() async {
     if (!_authService.isSignedIn || !_appPreferences.notificationsEnabled) {
-      return;
+      return _lastTokenSyncResult = const TokenSyncResult(
+        TokenSyncStatus.skipped,
+        'Powiadomienia wyłączone lub brak logowania',
+      );
     }
 
     try {
-      final settings = await _messagingClient.requestPermission();
-      final authorized =
-          settings.authorizationStatus == AuthorizationStatus.authorized ||
-              settings.authorizationStatus == AuthorizationStatus.provisional;
-      if (!authorized) return;
+      final authorized = await _ensureNotificationPermissions();
+      if (!authorized) {
+        return _lastTokenSyncResult = const TokenSyncResult(
+          TokenSyncStatus.permissionDenied,
+          'Brak zgody systemowej na powiadomienia',
+        );
+      }
 
       final token = await _messagingClient.getToken();
-      if (token == null || token.isEmpty) return;
+      if (token == null || token.isEmpty) {
+        return _lastTokenSyncResult = const TokenSyncResult(
+          TokenSyncStatus.noToken,
+          'Nie udało się pobrać tokena FCM z urządzenia',
+        );
+      }
 
-      await _saveFcmToken(token);
+      final saved = await _saveFcmToken(token);
+      if (!saved) {
+        return _lastTokenSyncResult = const TokenSyncResult(
+          TokenSyncStatus.profileMissing,
+          'Nie zapisano tokena — zaloguj się ponownie',
+        );
+      }
+
+      return _lastTokenSyncResult = const TokenSyncResult(
+        TokenSyncStatus.saved,
+        'Powiadomienia skonfigurowane na tym urządzeniu',
+      );
     } catch (e, stack) {
       debugPrint('NotificationService.syncToken failed: $e');
       debugPrint('$stack');
+      return _lastTokenSyncResult = TokenSyncResult(
+        TokenSyncStatus.failed,
+        'Błąd rejestracji: $e',
+      );
     }
+  }
+
+  Future<bool> _ensureNotificationPermissions() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin == null) return true;
+
+      final alreadyEnabled =
+          await androidPlugin.areNotificationsEnabled() ?? true;
+      if (alreadyEnabled) return true;
+
+      final granted = await androidPlugin.requestNotificationsPermission();
+      return granted ?? true;
+    }
+
+    final settings = await _messagingClient.requestPermission();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
   }
 
   Future<void> disablePushRegistration() async {
     try {
       await _messagingClient.deleteToken();
+      if (_authService.isSignedIn) {
+        await DefaultConnector.instance.updateFcmToken(token: '').execute();
+      }
     } catch (e) {
       debugPrint('NotificationService.disablePushRegistration failed: $e');
     }
+  }
+
+  Future<void> showUpvoteReceived({
+    required String reportId,
+    required String categoryName,
+    String? description,
+    required int newCount,
+  }) async {
+    if (!_appPreferences.notificationsEnabled) return;
+
+    final summary = description?.trim().isNotEmpty == true
+        ? (description!.trim().length > 60
+            ? '${description.trim().substring(0, 57)}...'
+            : description.trim())
+        : categoryName;
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _upvoteChannelId,
+        _upvoteChannelName,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+    );
+
+    await _localNotifications.show(
+      reportId.hashCode,
+      'Nowe wsparcie zgłoszenia',
+      'Ktoś podbił Twoje zgłoszenie: $summary ($newCount)',
+      details,
+      payload: reportId,
+    );
   }
 
   Future<void> notifyUpvoteOnReport(String reportId) async {
@@ -159,19 +271,29 @@ class NotificationService {
       }
 
       final callable = _functionsClient.httpsCallable('notifyUpvoteOnReport');
-      await callable.call({'reportId': reportId});
+      final result = await callable.call({'reportId': reportId});
+      debugPrint('notifyUpvoteOnReport: ${result.data}');
     } catch (e) {
       debugPrint('notifyUpvoteOnReport failed: $e');
     }
   }
 
-  Future<void> _saveFcmToken(String token) async {
+  Future<bool> _saveFcmToken(String token) async {
     if (_persistFcmToken != null) {
       await _persistFcmToken!(token);
-      return;
+      return true;
     }
 
-    await DefaultConnector.instance.updateFcmToken(token: token).execute();
+    final result =
+        await DefaultConnector.instance.updateFcmToken(token: token).execute();
+    if (result.data.user_update == null) {
+      debugPrint(
+        'NotificationService: nie udało się zapisać FCM tokena (brak profilu użytkownika?).',
+      );
+      return false;
+    }
+    debugPrint('NotificationService: FCM token zapisany w profilu.');
+    return true;
   }
 
   Future<void> _configureLocalNotifications() async {
@@ -205,6 +327,7 @@ class NotificationService {
   void _handleRemoteMessageTap(RemoteMessage message) {
     final reportId = _extractReportId(message.data);
     if (reportId != null) {
+      _onReportsChanged?.call();
       _openReportFromNotification(reportId);
     }
   }
@@ -240,6 +363,9 @@ class NotificationService {
     if (notification == null) return;
 
     final reportId = _extractReportId(message.data);
+    if (reportId != null) {
+      _onReportsChanged?.call();
+    }
 
     const details = NotificationDetails(
       android: AndroidNotificationDetails(

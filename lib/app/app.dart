@@ -30,6 +30,9 @@ class _CityIssuesAppState extends State<CityIssuesApp> {
 
       await AuthService.instance.initialize();
       await AuthService.instance.waitForAuthReady();
+      if (AuthService.instance.isSignedIn) {
+        await AuthService.instance.ensureUserProfile();
+      }
       await AppPreferences.instance.load();
       await NotificationService.instance.initialize();
     } catch (e) {

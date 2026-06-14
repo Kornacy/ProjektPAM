@@ -44,6 +44,10 @@ class ReportService {
   final Future<void> Function(String reportId) _onUpvoteNotify;
 
   final Map<String, UpvoteDisplayState> _upvoteCache = {};
+  final Map<String, int> _lastOwnerUpvoteCounts = {};
+  final Map<String, bool> _lastOwnerSelfUpvoted = {};
+  final Set<String> _selfUpvoteNotifySuppress = {};
+  bool _ownerUpvoteBaselineReady = false;
 
   UpvoteDisplayState? upvoteStateFor(String reportId) =>
       _upvoteCache[reportId];
@@ -69,6 +73,37 @@ class ReportService {
           count: serverCount,
           hasUpvoted: serverHasUpvoted,
         );
+  }
+
+  void _notifyOwnerUpvoteIncreases(List<GetReportsReports> reports) {
+    final userId = _authService.currentUser?.uid;
+
+    for (final report in reports) {
+      final count = ReportUtils.upvoteCount(report.upvotes_on_report);
+      final previous = _lastOwnerUpvoteCounts[report.id];
+      final selfUpvoted = userId != null &&
+          ReportUtils.userHasUpvoted(report.upvotes_on_report, userId);
+      final wasSelfUpvoted = _lastOwnerSelfUpvoted[report.id] ?? false;
+
+      if (_ownerUpvoteBaselineReady && previous != null && count > previous) {
+        final onlySelfUpvote =
+            count == previous + 1 && selfUpvoted && !wasSelfUpvoted;
+        final suppressedSelfAction = _selfUpvoteNotifySuppress.remove(report.id);
+
+        if (!onlySelfUpvote && !suppressedSelfAction) {
+          NotificationService.instance.showUpvoteReceived(
+            reportId: report.id,
+            categoryName: report.category.name,
+            description: report.description,
+            newCount: count,
+          );
+        }
+      }
+
+      _lastOwnerUpvoteCounts[report.id] = count;
+      _lastOwnerSelfUpvoted[report.id] = selfUpvoted;
+    }
+    _ownerUpvoteBaselineReady = true;
   }
 
   void _reconcileUpvoteCache(List<GetReportsReports> reports) {
@@ -145,12 +180,23 @@ class ReportService {
   Future<void> upvoteReport(String reportId) async {
     await _authService.ensureUserProfile();
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+    _selfUpvoteNotifySuppress.add(reportId);
+    if (_lastOwnerUpvoteCounts.containsKey(reportId)) {
+      _lastOwnerUpvoteCounts[reportId] =
+          (_lastOwnerUpvoteCounts[reportId] ?? 0) + 1;
+      _lastOwnerSelfUpvoted[reportId] = true;
+    }
     await _onUpvoteNotify(reportId);
   }
 
   Future<void> removeUpvote(String reportId) async {
     await _authService.ensureUserProfile();
     await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
+    if (_lastOwnerUpvoteCounts.containsKey(reportId)) {
+      final next = (_lastOwnerUpvoteCounts[reportId] ?? 1) - 1;
+      _lastOwnerUpvoteCounts[reportId] = next < 0 ? 0 : next;
+      _lastOwnerSelfUpvoted[reportId] = false;
+    }
   }
 
   Future<List<GetReportsReports>> getMyReports({bool forceRefresh = false}) async {
@@ -180,7 +226,8 @@ class ReportService {
         user: GetReportsReportsUpvotesOnReportUser(id: u.user.id),
       )
     ).toList(),
-  )).toList();
+    )).toList();
+  _notifyOwnerUpvoteIncreases(reports);
   _reconcileUpvoteCache(reports);
   return reports;
 }

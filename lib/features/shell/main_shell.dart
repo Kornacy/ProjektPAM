@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -19,7 +21,7 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
   final _navBarKey = GlobalKey();
   final _mapFiltersKey = GlobalKey();
@@ -38,6 +40,7 @@ class _MainShellState extends State<MainShell> {
   bool _tourVisible = false;
   bool _tourReplay = false;
   int _tourStep = 0;
+  Timer? _reportsPollTimer;
   late final List<AppTourStep> _tourSteps = AppTourSteps.build(
     mapFiltersKey: _mapFiltersKey,
     mapFabKey: _mapFabKey,
@@ -53,15 +56,41 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     NotificationService.instance.setOnReportOpened(_openReportFromNotification);
+    NotificationService.instance.setOnReportsChanged(_refreshReportsFromServer);
+    NotificationService.instance.syncToken();
+    _reportsPollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _refreshReportsFromServer(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowOnboarding());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _reportsPollTimer?.cancel();
     NotificationService.instance.setOnReportOpened(null);
+    NotificationService.instance.setOnReportsChanged(null);
     _settingsScrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshReportsFromServer();
+      NotificationService.instance.syncToken();
+    }
+  }
+
+  Future<void> _refreshReportsFromServer() async {
+    await Future.wait([
+      _mapKey.currentState?.refreshReports(forceRefresh: true, silent: true) ??
+          Future.value(),
+      _myReportsKey.currentState?.refresh(silent: true) ?? Future.value(),
+    ]);
   }
 
   Future<void> _openReportFromNotification(String reportId) async {
@@ -152,11 +181,19 @@ class _MainShellState extends State<MainShell> {
   }
 
   void openReportDetail(GetReportsReports report) {
+    _openReportDetail(report);
+  }
+
+  Future<void> _openReportDetail(GetReportsReports report) async {
+    final fresh =
+        await ReportService.instance.findReportById(report.id) ?? report;
+    if (!mounted) return;
+
     _shellNavigatorKey.currentState?.push(
       MaterialPageRoute(
         settings: const RouteSettings(name: '/report-detail'),
         builder: (_) => ReportDetailScreen(
-          report: report,
+          report: fresh,
           onBack: () => _shellNavigatorKey.currentState?.pop(),
         ),
       ),
@@ -287,6 +324,9 @@ class _MainShellState extends State<MainShell> {
                 _stackIndex = index == 3 ? 2 : index;
                 if (_stackIndex != 3) _createInitialLocation = null;
               });
+              if (index == 0 || index == 1) {
+                _refreshReportsFromServer();
+              }
             },
             destinations: const [
               NavigationDestination(

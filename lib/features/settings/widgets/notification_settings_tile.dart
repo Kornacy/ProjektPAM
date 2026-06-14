@@ -14,17 +14,30 @@ class NotificationSettingsTile extends StatefulWidget {
 
 class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
   AuthorizationStatus? _systemStatus;
+  TokenSyncResult? _tokenSyncResult;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSystemStatus();
+    _refreshStatus();
   }
 
-  Future<void> _loadSystemStatus() async {
+  Future<void> _refreshStatus() async {
     final status = await NotificationService.instance.systemPermissionStatus();
-    if (mounted) setState(() => _systemStatus = status);
+    TokenSyncResult? syncResult;
+    if (AuthService.instance.isSignedIn &&
+        AppPreferences.instance.notificationsEnabled) {
+      syncResult = await NotificationService.instance.syncToken();
+    } else {
+      syncResult = NotificationService.instance.lastTokenSyncResult;
+    }
+    if (mounted) {
+      setState(() {
+        _systemStatus = status;
+        _tokenSyncResult = syncResult;
+      });
+    }
   }
 
   Future<void> _onChanged(bool enabled) async {
@@ -34,12 +47,16 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
     try {
       if (enabled) {
         await AppPreferences.instance.setNotificationsEnabled(true);
-        await NotificationService.instance.syncToken();
+        final result = await NotificationService.instance.syncToken();
+        if (mounted) setState(() => _tokenSyncResult = result);
       } else {
         await NotificationService.instance.disablePushRegistration();
         await AppPreferences.instance.setNotificationsEnabled(false);
+        if (mounted) {
+          setState(() => _tokenSyncResult = null);
+        }
       }
-      await _loadSystemStatus();
+      await _refreshStatus();
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -51,6 +68,13 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
     }
     if (!enabled) {
       return 'Wyłączone w aplikacji';
+    }
+    if (_tokenSyncResult?.status == TokenSyncStatus.saved) {
+      return 'Gotowe — otrzymasz powiadomienie, gdy ktoś podbije Twoje zgłoszenie';
+    }
+    if (_tokenSyncResult != null &&
+        _tokenSyncResult!.status != TokenSyncStatus.saved) {
+      return _tokenSyncResult!.message;
     }
     return switch (status) {
       AuthorizationStatus.authorized =>
@@ -69,9 +93,14 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
   Widget build(BuildContext context) {
     final prefs = AppPreferences.instance;
     final signedIn = AuthService.instance.isSignedIn;
+    final tokenReady = _tokenSyncResult?.status == TokenSyncStatus.saved;
 
     return SwitchListTile(
-      secondary: const Icon(Icons.notifications_outlined),
+      secondary: Icon(
+        tokenReady && prefs.notificationsEnabled
+            ? Icons.notifications_active_outlined
+            : Icons.notifications_outlined,
+      ),
       title: const Text('Powiadomienia push'),
       subtitle: Text(_subtitle(prefs.notificationsEnabled, _systemStatus)),
       value: signedIn && prefs.notificationsEnabled,

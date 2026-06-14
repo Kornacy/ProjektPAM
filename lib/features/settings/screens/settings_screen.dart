@@ -149,6 +149,17 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text(
+                  'Usuń konto',
+                  style: TextStyle(color: Colors.red),
+                ),
+                subtitle: const Text(
+                  'Trwale usuwa profil, zgłoszenia, komentarze i zdjęcia',
+                ),
+                onTap: () => _confirmDeleteAccount(context),
+              ),
+              ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Wyloguj się', style: TextStyle(color: Colors.red)),
                 onTap: () async {
@@ -189,6 +200,50 @@ class SettingsScreen extends StatelessWidget {
         return 'Ciemny';
       case ThemeMode.system:
         return 'Zgodny z systemem';
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Usunąć konto?'),
+        content: const Text(
+          'Ta operacja jest nieodwracalna. Zostaną usunięte:\n'
+          '• profil i dane logowania,\n'
+          '• Twoje zgłoszenia i zdjęcia,\n'
+          '• Twoje komentarze i głosy.\n\n'
+          'Czy na pewno chcesz kontynuować?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Usuń konto'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    try {
+      await AuthService.instance.deleteAccount();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Konto zostało usunięte.')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     }
   }
 }

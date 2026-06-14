@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/core/utils/user_facing_error.dart';
@@ -12,38 +10,38 @@ import 'package:city_issues/features/reports/widgets/report_location_picker.dart
 import 'package:city_issues/services/camera_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/report_service.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class CreateReportScreen extends StatefulWidget {
-  const CreateReportScreen({
-    super.key,
-    this.initialLocation,
-    this.embedded = false,
-    this.onClose,
-    this.onSubmitted,
-  });
+class _ExistingPhoto {
+  _ExistingPhoto({required this.id, required this.url});
 
-  final LatLng? initialLocation;
-  final bool embedded;
-  final VoidCallback? onClose;
-  final VoidCallback? onSubmitted;
-
-  @override
-  State<CreateReportScreen> createState() => _CreateReportScreenState();
+  final String id;
+  final String url;
+  bool markedForRemoval = false;
 }
 
-class _CreateReportScreenState extends State<CreateReportScreen> {
-  static const LatLng _defaultPosition = LatLng(52.2297, 21.0122);
+class EditReportScreen extends StatefulWidget {
+  const EditReportScreen({super.key, required this.report});
 
+  final GetReportsReports report;
+
+  @override
+  State<EditReportScreen> createState() => _EditReportScreenState();
+}
+
+class _EditReportScreenState extends State<EditReportScreen> {
   final TextEditingController _descController = TextEditingController();
 
   List<GetCategoriesCategories> _categories = [];
   String? _selectedCategoryId;
-  final List<File> _photos = [];
+  final List<_ExistingPhoto> _existingPhotos = [];
+  final List<File> _newPhotos = [];
 
   LatLng? _location;
-  bool _locationLoading = true;
+  bool _locationLoading = false;
   String? _locationError;
-  bool _requireMapInteraction = false;
 
   final _locationPickerKey = GlobalKey<ReportLocationPickerState>();
 
@@ -51,45 +49,52 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   bool _isSubmitting = false;
   String? _submitError;
 
+  int get _remainingPhotoCount =>
+      _existingPhotos.where((p) => !p.markedForRemoval).length + _newPhotos.length;
+
   bool get _canSubmit =>
       !_isSubmitting &&
       !_categoriesLoading &&
-      !_locationLoading &&
       _selectedCategoryId != null &&
       _location != null &&
-      _photos.isNotEmpty;
+      _remainingPhotoCount > 0;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
-    if (widget.initialLocation != null) {
-      _location = widget.initialLocation;
-      _locationLoading = false;
-    } else {
-      _loadLocation();
+    _descController.text = widget.report.description ?? '';
+    _location = LatLng(widget.report.latitude, widget.report.longitude);
+    for (final photo in widget.report.reportPhotos_on_report) {
+      _existingPhotos.add(_ExistingPhoto(id: photo.id, url: photo.imageUrl));
     }
+    _loadCategories();
   }
-
-  LatLng get _mapInitialTarget => _location ?? _defaultPosition;
 
   Future<void> _loadCategories() async {
     try {
       final categories = await ReportService.instance.getCategories();
-      if (mounted) {
-        setState(() {
-          _categories = categories;
-          _categoriesLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _categoriesLoading = false;
+        _selectedCategoryId = _resolveCategoryId(categories);
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _categoriesLoading = false;
-          _submitError = UserFacingError.loadCategories(e);
-        });
+      if (!mounted) return;
+      setState(() {
+        _categoriesLoading = false;
+        _submitError = UserFacingError.loadCategories(e);
+      });
+    }
+  }
+
+  String? _resolveCategoryId(List<GetCategoriesCategories> categories) {
+    for (final category in categories) {
+      if (category.name == widget.report.category.name) {
+        return category.id;
       }
     }
+    return categories.isNotEmpty ? categories.first.id : null;
   }
 
   Future<void> _loadLocation() async {
@@ -100,24 +105,19 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     try {
       final Position position =
           await LocationService.instance.getCurrentLocation();
-      if (mounted) {
-        final latLng = LatLng(position.latitude, position.longitude);
-        setState(() {
-          _location = latLng;
-          _locationLoading = false;
-          _requireMapInteraction = false;
-        });
-        _locationPickerKey.currentState?.recenterTo(latLng);
-      }
+      if (!mounted) return;
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _location = latLng;
+        _locationLoading = false;
+      });
+      _locationPickerKey.currentState?.recenterTo(latLng);
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _locationError = UserFacingError.location(e);
-          _location = null;
-          _locationLoading = false;
-          _requireMapInteraction = true;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _locationError = UserFacingError.location(e);
+        _locationLoading = false;
+      });
     }
   }
 
@@ -131,7 +131,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   Future<void> _addPhoto() async {
     final File? photo = await CameraService.instance.showPickerDialog(context);
     if (photo != null) {
-      setState(() => _photos.add(photo));
+      setState(() => _newPhotos.add(photo));
     }
   }
 
@@ -144,57 +144,41 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     });
 
     try {
-      await ReportService.instance.createReport(
+      await ReportService.instance.editReport(
+        reportId: widget.report.id,
         categoryId: _selectedCategoryId!,
         description: _descController.text.trim().isEmpty
             ? null
             : _descController.text.trim(),
-        photos: _photos,
-        selectedLocation: _location
+        location: _location!,
+        photos: _newPhotos,
+        removedPhotoIds: _existingPhotos
+            .where((p) => p.markedForRemoval)
+            .map((p) => p.id)
+            .toList(),
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Zgłoszenie zostało wysłane.')),
-        );
-        if (widget.embedded) {
-          widget.onSubmitted?.call();
-        } else {
-          Navigator.pop(context, true);
-        }
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zgłoszenie zostało zaktualizowane.')),
+      );
+      Navigator.pop(context, true);
     } catch (e) {
-      setState(() => _submitError = UserFacingError.submitReport(e));
+      if (!mounted) return;
+      setState(() => _submitError = UserFacingError.editReport(e));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  void _handleBack() {
-    if (widget.embedded) {
-      widget.onClose?.call();
-    } else {
-      Navigator.maybePop(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold(
-      appBar: AppBar(
-        title: const Text('Nowe zgłoszenie'),
-        leading: widget.embedded
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Wróć',
-                onPressed: _handleBack,
-              )
-            : null,
-      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Edytuj zgłoszenie')),
       body: _categoriesLoading
           ? const AppLoading(message: 'Ładowanie formularza...')
           : SingleChildScrollView(
-              padding: ScrollPadding.list(context, includeNavBar: widget.embedded),
+              padding: ScrollPadding.list(context, includeNavBar: true),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -235,10 +219,10 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                     maxLength: 500,
                   ),
                   const SizedBox(height: 8),
-                  Text('Zdjęcie *', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Zdjęcia *', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text(
-                    'Dodaj co najmniej jedno zdjęcie problemu.',
+                    'Zgłoszenie musi mieć co najmniej jedno zdjęcie.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -249,8 +233,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                   Text('Lokalizacja *', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text(
-                    'Przesuń mapę tak, aby pinezka wskazywała miejsce zgłoszenia. '
-                    'Możesz też pobrać lokalizację z GPS.',
+                    'Przesuń mapę tak, aby pinezka wskazywała miejsce zgłoszenia.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -270,14 +253,12 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                             width: 24,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Wyślij zgłoszenie'),
+                        : const Text('Zapisz zmiany'),
                   ),
                 ],
               ),
             ),
     );
-
-    return scaffold;
   }
 
   Widget _buildPhotos() {
@@ -285,7 +266,40 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       spacing: 8,
       runSpacing: 8,
       children: [
-        ..._photos.map(
+        ..._existingPhotos.where((p) => !p.markedForRemoval).map(
+              (photo) => Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      photo.url,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 100,
+                        height: 100,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: const Icon(Icons.broken_image_outlined),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: GestureDetector(
+                      onTap: () => setState(() => photo.markedForRemoval = true),
+                      child: const CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.red,
+                        child: Icon(Icons.close, size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ..._newPhotos.map(
           (photo) => Stack(
             children: [
               ClipRRect(
@@ -296,7 +310,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                 top: 4,
                 right: 4,
                 child: GestureDetector(
-                  onTap: () => setState(() => _photos.remove(photo)),
+                  onTap: () => setState(() => _newPhotos.remove(photo)),
                   child: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.red,
@@ -334,6 +348,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       return const SizedBox(height: 200, child: AppLoading(message: 'Pobieranie GPS...'));
     }
 
+    final target = _location ?? LatLng(widget.report.latitude, widget.report.longitude);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -347,8 +363,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             height: 200,
             child: ReportLocationPicker(
               key: _locationPickerKey,
-              initialTarget: _mapInitialTarget,
-              requireUserInteraction: _requireMapInteraction,
+              initialTarget: target,
               onLocationChanged: _onPickerLocationChanged,
             ),
           ),
@@ -358,13 +373,6 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           Text(
             'Współrzędne: ${_location!.latitude.toStringAsFixed(5)}, ${_location!.longitude.toStringAsFixed(5)}',
             style: Theme.of(context).textTheme.bodySmall,
-          )
-        else
-          Text(
-            'Przesuń mapę, aby wskazać miejsce zgłoszenia.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
           ),
         TextButton.icon(
           onPressed: _loadLocation,

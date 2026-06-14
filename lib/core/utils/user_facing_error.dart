@@ -51,6 +51,12 @@ class UserFacingError {
   static String submitReport(Object error) =>
       message(error, fallback: 'Nie udało się wysłać zgłoszenia.');
 
+  static String editReport(Object error) =>
+      message(error, fallback: 'Nie udało się zaktualizować zgłoszenia.');
+
+  static String deleteReport(Object error) =>
+      message(error, fallback: 'Nie udało się usunąć zgłoszenia.');
+
   static String upvote(Object error) =>
       message(error, fallback: 'Nie udało się oddać głosu.');
 

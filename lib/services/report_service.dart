@@ -157,6 +157,12 @@ class ReportService {
   return reports;
 }
 
+  Future<bool> isOwnReport(String reportId) async {
+    if (!_authService.isSignedIn) return false;
+    final myReports = await getMyReports();
+    return myReports.any((report) => report.id == reportId);
+  }
+
   Future<void> createReport({
     required String categoryId,
     String? description,

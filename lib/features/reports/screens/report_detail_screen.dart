@@ -1,6 +1,9 @@
+import 'package:city_issues/features/reports/widgets/report_manage_actions.dart';
+import 'package:city_issues/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
+import 'package:city_issues/core/utils/user_facing_error.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/reports/widgets/comments_section.dart';
 import 'package:city_issues/services/auth_service.dart';
@@ -8,30 +11,81 @@ import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/features/reports/widgets/photo_viewer.dart';
 import 'package:city_issues/features/reports/widgets/upvote_button.dart';
 
-class ReportDetailScreen extends StatelessWidget {
+class ReportDetailScreen extends StatefulWidget {
   const ReportDetailScreen({
     super.key,
     required this.report,
     this.onBack,
     this.commentsSection,
     this.upvoteButton,
+    this.canManage = false,
+    this.onEdit,
+    this.onDeleted,
   });
 
   final GetReportsReports report;
   final VoidCallback? onBack;
   final Widget? commentsSection;
   final Widget? upvoteButton;
+  final bool canManage;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDeleted;
+
+  @override
+  State<ReportDetailScreen> createState() => _ReportDetailScreenState();
+}
+
+class _ReportDetailScreenState extends State<ReportDetailScreen> {
+  bool _isDeleting = false;
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showReportDeleteDialog(context);
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await ReportService.instance.deleteReport(widget.report.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zgłoszenie zostało usunięte.')),
+      );
+      if (widget.onDeleted != null) {
+        widget.onDeleted!();
+      } else if (widget.onBack != null) {
+        widget.onBack!();
+      } else {
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(UserFacingError.deleteReport(e))),
+      );
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'edit':
+        widget.onEdit?.call();
+      case 'delete':
+        _confirmDelete();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final report = widget.report;
     final position = LatLng(report.latitude, report.longitude);
     final photos = report.reportPhotos_on_report;
     final photoUrls = photos.map((p) => p.imageUrl).toList();
     final upvoteCount = ReportUtils.upvoteCount(report.upvotes_on_report);
 
     void goBack() {
-      if (onBack != null) {
-        onBack!();
+      if (widget.onBack != null) {
+        widget.onBack!();
       } else {
         Navigator.of(context).pop();
       }
@@ -48,8 +102,44 @@ class ReportDetailScreen extends StatelessWidget {
         title: const Text('Szczegóły zgłoszenia'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: goBack,
+          onPressed: _isDeleting ? null : goBack,
         ),
+        actions: [
+          if (widget.canManage)
+            PopupMenuButton<String>(
+              enabled: !_isDeleting,
+              onSelected: _handleMenuAction,
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('Edytuj'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                    title: Text('Usuń', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          if (_isDeleting)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -129,7 +219,7 @@ class ReportDetailScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    upvoteButton ??
+                    widget.upvoteButton ??
                         UpvoteButton(
                           reportId: report.id,
                           initialCount: upvoteCount,
@@ -168,7 +258,7 @@ class ReportDetailScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 24),
-                    commentsSection ??
+                    widget.commentsSection ??
                         CommentsSection(
                           reportId: report.id,
                           isSignedIn: AuthService.instance.isSignedIn,

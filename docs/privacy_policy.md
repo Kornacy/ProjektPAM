@@ -178,7 +178,7 @@ Dane nie są sprzedawane. Odbiorcy:
 * **Prawo do ograniczenia przetwarzania (art. 18)** i **przenoszenia danych (art. 20)**.
 * **Prawo do cofnięcia zgody (art. 7 ust. 3)** — w dowolnym momencie: wyłączenie GPS, aparatu lub powiadomień w ustawieniach Androida; wyłączenie powiadomień push w Profilu aplikacji.
 
-Skarga do **Prezesa Urzędu Ochrony Danych Osobowych (PUODO)**, ul. Moniuszki 1A, 00-014 Warszawa.
+Skarga do **Prezesa Urzędu Ochrony Danych Osobowych (PUODO)**, ul. Stanisława Moniuszki 1A, 00-014 Warszawa.
 
 Aplikacja **nie podejmuje zautomatyzowanych decyzji** w rozumieniu art. 22 RODO, w tym profilowania.
 

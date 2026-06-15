@@ -6,11 +6,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
 import 'package:city_issues/features/onboarding/app_tour.dart';
+import 'package:city_issues/features/reports/screens/edit_report_screen.dart';
 import 'package:city_issues/features/reports/screens/create_report_screen.dart';
 import 'package:city_issues/features/reports/screens/my_reports_screen.dart';
 import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/features/settings/screens/settings_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
+import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/services/notification_service.dart';
 import 'package:city_issues/services/report_service.dart';
 
@@ -180,11 +182,22 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     }
   }
 
-  void openReportDetail(GetReportsReports report) {
-    _openReportDetail(report);
+  void _refreshReportData() {
+    _mapKey.currentState?.refreshReports(forceRefresh: true);
+    _myReportsKey.currentState?.refresh();
   }
 
-  Future<void> _openReportDetail(GetReportsReports report) async {
+  Future<bool> _resolveCanManage(String reportId, {bool? canManage}) async {
+    if (canManage != null) return canManage;
+    if (!AuthService.instance.isSignedIn) return false;
+    return ReportService.instance.isOwnReport(reportId);
+  }
+
+  Future<void> openReportDetail(
+    GetReportsReports report, {
+    bool? canManage,
+  }) async {
+    final manage = await _resolveCanManage(report.id, canManage: canManage);
     final fresh =
         await ReportService.instance.findReportById(report.id) ?? report;
     if (!mounted) return;
@@ -194,10 +207,42 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         settings: const RouteSettings(name: '/report-detail'),
         builder: (_) => ReportDetailScreen(
           report: fresh,
+          canManage: manage,
           onBack: () => _shellNavigatorKey.currentState?.pop(),
+          onEdit: manage ? () => _openEditReport(report) : null,
+          onDeleted: manage
+              ? () {
+                  _shellNavigatorKey.currentState?.pop(true);
+                  _refreshReportData();
+                }
+              : null,
         ),
       ),
-    );
+    ).then((deleted) {
+      if (deleted == true && manage) {
+        _refreshReportData();
+      }
+    });
+  }
+
+  void _openEditReport(GetReportsReports report) {
+    _shellNavigatorKey.currentState?.push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/report-edit'),
+        builder: (_) => EditReportScreen(report: report),
+      ),
+    ).then((saved) {
+      if (saved == true) {
+        _refreshReportData();
+        _shellNavigatorKey.currentState?.popUntil(
+          (route) => route.settings.name != '/report-detail',
+        );
+      }
+    });
+  }
+
+  void openReportDetailFromMyReports(GetReportsReports report) {
+    openReportDetail(report, canManage: true);
   }
 
   void _openCreateReport({LatLng? initialLocation}) {
@@ -270,7 +315,9 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         ),
         MyReportsScreen(
           key: _myReportsKey,
-          onOpenReportDetail: openReportDetail,
+          onOpenReportDetail: openReportDetailFromMyReports,
+          onEditReport: _openEditReport,
+          onReportDeleted: _refreshReportData,
         ),
         SettingsScreen(
           onShowOnboarding: () => openOnboarding(replay: true),

@@ -896,3 +896,37 @@ final ref = DefaultConnector.instance.deleteReport(
 ref.execute();
 ```
 
+
+### DeleteAccount
+#### Required Arguments
+```dart
+// No required arguments
+DefaultConnector.instance.deleteAccount().execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<DeleteAccountData, void>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.deleteAccount();
+DeleteAccountData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+final ref = DefaultConnector.instance.deleteAccount().ref();
+ref.execute();
+```
+

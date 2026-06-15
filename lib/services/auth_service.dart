@@ -3,20 +3,39 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../dataconnect_generated/default.dart';
 import 'notification_service.dart';
+import 'storage_service.dart';
+
+typedef DeleteAccountMutation = Future<DeleteAccountData> Function();
 
 class AuthService {
-  AuthService._({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
-      : _firebaseAuthOverride = firebaseAuth,
-        _googleSignInOverride = googleSignIn;
+  AuthService._({
+    FirebaseAuth? firebaseAuth,
+    GoogleSignIn? googleSignIn,
+    DeleteAccountMutation? deleteAccountMutation,
+    StorageService? storageService,
+  })  : _firebaseAuthOverride = firebaseAuth,
+        _googleSignInOverride = googleSignIn,
+        _deleteAccountMutation = deleteAccountMutation,
+        _storageService = storageService ?? StorageService.instance;
 
   static final AuthService instance = AuthService._();
 
   @visibleForTesting
-  factory AuthService.forTesting({FirebaseAuth? firebaseAuth}) =>
-      AuthService._(firebaseAuth: firebaseAuth);
+  factory AuthService.forTesting({
+    FirebaseAuth? firebaseAuth,
+    DeleteAccountMutation? deleteAccountMutation,
+    StorageService? storageService,
+  }) =>
+      AuthService._(
+        firebaseAuth: firebaseAuth,
+        deleteAccountMutation: deleteAccountMutation,
+        storageService: storageService,
+      );
 
   final FirebaseAuth? _firebaseAuthOverride;
   final GoogleSignIn? _googleSignInOverride;
+  final DeleteAccountMutation? _deleteAccountMutation;
+  final StorageService _storageService;
 
   FirebaseAuth get _firebaseAuth =>
       _firebaseAuthOverride ?? FirebaseAuth.instance;
@@ -100,6 +119,48 @@ class AuthService {
       _firebaseAuth.signOut(),
       _googleSignIn.signOut(),
     ]);
+  }
+
+  /// Usuwa dane użytkownika z PostgreSQL, pliki ze Storage oraz konto Firebase Auth.
+  Future<void> deleteAccount() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('Musisz być zalogowany, aby usunąć konto.');
+    }
+
+    final uid = user.uid;
+
+    final result = await _deleteAccountMutationImpl();
+    if (result.user_delete == null) {
+      throw Exception('Nie udało się usunąć konta z bazy danych.');
+    }
+
+    await _storageService.deleteAllUserPhotos(uid);
+
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw Exception(
+          'Ze względów bezpieczeństwa wyloguj się, zaloguj ponownie '
+          'i spróbuj usunąć konto jeszcze raz.',
+        );
+      }
+      throw Exception(mapAuthError(e));
+    }
+
+    await _googleSignIn.signOut();
+  }
+
+  Future<DeleteAccountData> _deleteAccountMutationImpl() {
+    final deleteAccount = _deleteAccountMutation;
+    if (deleteAccount != null) {
+      return deleteAccount();
+    }
+    return DefaultConnector.instance
+        .deleteAccount()
+        .execute()
+        .then((result) => result.data);
   }
 
   static String mapAuthError(FirebaseAuthException e) {

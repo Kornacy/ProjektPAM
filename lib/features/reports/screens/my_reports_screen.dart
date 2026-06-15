@@ -1,3 +1,4 @@
+import 'package:city_issues/features/reports/widgets/report_manage_actions.dart';
 import 'package:city_issues/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
@@ -9,9 +10,16 @@ import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/core/utils/user_facing_error.dart';
 
 class MyReportsScreen extends StatefulWidget {
-  const MyReportsScreen({super.key, required this.onOpenReportDetail});
+  const MyReportsScreen({
+    super.key,
+    required this.onOpenReportDetail,
+    this.onEditReport,
+    this.onReportDeleted,
+  });
 
   final void Function(GetReportsReports report) onOpenReportDetail;
+  final void Function(GetReportsReports report)? onEditReport;
+  final VoidCallback? onReportDeleted;
 
   @override
   MyReportsScreenState createState() => MyReportsScreenState();
@@ -47,6 +55,35 @@ class MyReportsScreenState extends State<MyReportsScreen> {
       }
     } finally {
       if (mounted && !silent) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDelete(GetReportsReports report) async {
+    final confirmed = await showReportDeleteDialog(context);
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ReportService.instance.deleteReport(report.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zgłoszenie zostało usunięte.')),
+      );
+      widget.onReportDeleted?.call();
+      await _load(forceRefresh: true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(UserFacingError.deleteReport(e))),
+      );
+    }
+  }
+
+  void _handleMenuAction(String action, GetReportsReports report) {
+    switch (action) {
+      case 'edit':
+        widget.onEditReport?.call(report);
+      case 'delete':
+        _confirmDelete(report);
     }
   }
 
@@ -125,20 +162,46 @@ class MyReportsScreenState extends State<MyReportsScreen> {
                 ),
               ],
             ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: ReportUtils.statusColor(report.status).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                ReportUtils.statusLabel(report.status),
-                style: TextStyle(
-                  color: ReportUtils.statusColor(report.status),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: ReportUtils.statusColor(report.status).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    ReportUtils.statusLabel(report.status),
+                    style: TextStyle(
+                      color: ReportUtils.statusColor(report.status),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
+                PopupMenuButton<String>(
+                  onSelected: (value) => _handleMenuAction(value, report),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: ListTile(
+                        leading: Icon(Icons.edit_outlined),
+                        title: Text('Edytuj'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(Icons.delete_outline, color: Colors.red),
+                        title: Text('Usuń', style: TextStyle(color: Colors.red)),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             onTap: () => widget.onOpenReportDetail(report),
           );

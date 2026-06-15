@@ -106,3 +106,25 @@ mutation DeleteReport($reportId: UUID!) @auth(level: USER) {
     userId: { eq_expr: "auth.uid" }
   })
 }
+
+mutation DeleteAccount @auth(level: USER) @transaction {
+  comment_deleteMany(where: {
+    _or: [
+      { userId: { eq_expr: "auth.uid" } },
+      { report: { userId: { eq_expr: "auth.uid" } } }
+    ]
+  })
+  upvote_deleteMany(where: {
+    _or: [
+      { userId: { eq_expr: "auth.uid" } },
+      { report: { userId: { eq_expr: "auth.uid" } } }
+    ]
+  })
+  reportPhoto_deleteMany(where: {
+    report: { userId: { eq_expr: "auth.uid" } }
+  })
+  report_deleteMany(where: {
+    userId: { eq_expr: "auth.uid" }
+  })
+  user_delete(key: { id_expr: "auth.uid" })
+}

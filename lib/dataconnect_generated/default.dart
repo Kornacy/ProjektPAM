@@ -39,6 +39,7 @@ part 'edit_report.dart';
 
 part 'delete_report.dart';
 
+part 'delete_account.dart';
 
 
 
@@ -137,6 +138,10 @@ class DefaultConnector {
     return DeleteReportVariablesBuilder(dataConnect, reportId: reportId,);
   }
   
+  
+  DeleteAccountVariablesBuilder deleteAccount () {
+    return DeleteAccountVariablesBuilder(dataConnect, );
+  }
 
   static ConnectorConfig connectorConfig = ConnectorConfig(
     'europe-central2',

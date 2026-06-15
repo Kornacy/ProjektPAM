@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
+import 'package:city_issues/core/widgets/offline_banner.dart';
 import 'package:city_issues/features/map/screens/map_screen.dart';
 import 'package:city_issues/features/onboarding/app_tour.dart';
 import 'package:city_issues/features/reports/screens/edit_report_screen.dart';
@@ -14,6 +15,8 @@ import 'package:city_issues/features/settings/screens/settings_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 import 'package:city_issues/services/notification_service.dart';
+import 'package:city_issues/services/offline/connectivity_service.dart';
+import 'package:city_issues/services/offline/offline_sync_service.dart';
 import 'package:city_issues/services/report_service.dart';
 
 class MainShell extends StatefulWidget {
@@ -66,6 +69,8 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
       const Duration(seconds: 30),
       (_) => _refreshReportsFromServer(),
     );
+    ConnectivityService.instance.addListener(_onOfflineUiChanged);
+    OfflineSyncService.instance.addListener(_onOfflineUiChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowOnboarding());
   }
 
@@ -75,6 +80,8 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     _reportsPollTimer?.cancel();
     NotificationService.instance.setOnReportOpened(null);
     NotificationService.instance.setOnReportsChanged(null);
+    ConnectivityService.instance.removeListener(_onOfflineUiChanged);
+    OfflineSyncService.instance.removeListener(_onOfflineUiChanged);
     _settingsScrollController.dispose();
     super.dispose();
   }
@@ -114,6 +121,13 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     }
 
     openReportDetail(report);
+  }
+
+  void _onOfflineUiChanged() {
+    if (!ConnectivityService.instance.isOnline) return;
+    OfflineSyncService.instance.syncPendingOperations().then((_) {
+      if (mounted) _refreshReportsFromServer();
+    });
   }
 
   Future<void> _maybeShowOnboarding() async {
@@ -345,61 +359,73 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
       },
       child: Stack(
         children: [
-          Scaffold(
-          body: Navigator(
-            key: _shellNavigatorKey,
-            onGenerateRoute: (settings) {
-              return MaterialPageRoute(
-                builder: (_) => _buildMainTabs(),
-              );
-            },
+          SafeArea(
+            bottom: false,
+            left: false,
+            right: false,
+            child: Column(
+              children: [
+                const OfflineBanner(),
+                Expanded(
+                  child: Scaffold(
+                    body: Navigator(
+                      key: _shellNavigatorKey,
+                      onGenerateRoute: (settings) {
+                        return MaterialPageRoute(
+                          builder: (_) => _buildMainTabs(),
+                        );
+                      },
+                    ),
+                    bottomNavigationBar: NavigationBar(
+                      key: _navBarKey,
+                      selectedIndex: _navIndex,
+                      onDestinationSelected: (index) {
+                        if (_tourVisible) return;
+                        if (_shellNavigatorKey.currentState?.canPop() == true) {
+                          _shellNavigatorKey.currentState
+                              ?.popUntil((route) => route.isFirst);
+                        }
+                        if (index == 2) {
+                          _openCreateReport();
+                          return;
+                        }
+                        setState(() {
+                          _stackIndex = index == 3 ? 2 : index;
+                          if (_stackIndex != 3) _createInitialLocation = null;
+                        });
+                        if (index == 0 || index == 1) {
+                          _refreshReportsFromServer();
+                        }
+                      },
+                      destinations: const [
+                        NavigationDestination(
+                          icon: Icon(Icons.map_outlined),
+                          selectedIcon: Icon(Icons.map),
+                          label: 'Mapa',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.list_alt_outlined),
+                          selectedIcon: Icon(Icons.list_alt),
+                          label: 'Moje',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.add_circle_outline),
+                          selectedIcon: Icon(Icons.add_circle),
+                          label: 'Dodaj',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: 'Profil',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          bottomNavigationBar: NavigationBar(
-            key: _navBarKey,
-            selectedIndex: _navIndex,
-            onDestinationSelected: (index) {
-              if (_tourVisible) return;
-              if (_shellNavigatorKey.currentState?.canPop() == true) {
-                _shellNavigatorKey.currentState
-                    ?.popUntil((route) => route.isFirst);
-              }
-              if (index == 2) {
-                _openCreateReport();
-                return;
-              }
-              setState(() {
-                _stackIndex = index == 3 ? 2 : index;
-                if (_stackIndex != 3) _createInitialLocation = null;
-              });
-              if (index == 0 || index == 1) {
-                _refreshReportsFromServer();
-              }
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.map_outlined),
-                selectedIcon: Icon(Icons.map),
-                label: 'Mapa',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.list_alt_outlined),
-                selectedIcon: Icon(Icons.list_alt),
-                label: 'Moje',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.add_circle_outline),
-                selectedIcon: Icon(Icons.add_circle),
-                label: 'Dodaj',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: 'Profil',
-              ),
-            ],
-          ),
-        ),
-        if (_tourVisible)
+          if (_tourVisible)
           Positioned.fill(
             child: AppTourOverlay(
               step: _tourSteps[_tourStep],

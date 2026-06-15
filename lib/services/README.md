@@ -2,6 +2,8 @@
 
 Katalog zawiera logikę biznesową aplikacji — komunikację z backendem (Firebase Data Connect, Storage, Auth, Cloud Functions) oraz integrację z funkcjami urządzenia. UI w `lib/features/` korzysta z tych serwisów przez singletony (`*.instance`).
 
+Przegląd architektury frontendu: [`docs/frontend/README.md`](../../docs/frontend/README.md).
+
 Backend GraphQL: `dataconnect/default_connector/`. Cloud Function poza tym folderem: `functions/src/index.ts`.
 
 ---

@@ -14,6 +14,7 @@ Wersja: **0.2.0 (1)**
 - [Konfiguracja](#konfiguracja)
 - [Uruchomienie](#uruchomienie)
 - [Testy](#testy)
+- [Dokumentacja](#dokumentacja)
 - [Struktura projektu](#struktura-projektu)
 - [Zespół](#zespół)
 
@@ -22,6 +23,7 @@ Wersja: **0.2.0 (1)**
 ### Uwierzytelnianie
 
 - Logowanie i rejestracja przez **Google Sign-In** (Firebase Auth)
+- Usuwanie konta wraz z danymi w PostgreSQL i plikami w Storage
 
 ### Mapa zgłoszeń
 
@@ -29,6 +31,7 @@ Wersja: **0.2.0 (1)**
 - Filtry kategorii (kolory pinów z bazy danych)
 - Podgląd zgłoszenia w bottom sheet po kliknięciu markera
 - Przejście do szczegółów zgłoszenia
+- Odświeżanie listy co 30 s oraz po powiadomieniu push
 
 ### Nowe zgłoszenie
 
@@ -46,18 +49,30 @@ Wersja: **0.2.0 (1)**
 
 - Zdjęcia, opis, kategoria, status
 - Mapa z lokalizacją
-- Głosowanie (upvote)
+- Głosowanie (upvote) z optymistycznym UI
+- Komentarze: dodawanie, edycja i usuwanie własnych wpisów
+- Edycja i usuwanie własnego zgłoszenia (kategoria, opis, lokalizacja, zdjęcia)
+
+### Powiadomienia push
+
+- Powiadomienie właściciela zgłoszenia o nowym głosie wsparcia (FCM + Cloud Function)
+- Otwarcie szczegółów zgłoszenia po kliknięciu powiadomienia
+- Włączanie i wyłączanie push w ustawieniach profilu
+
+### Tryb offline (frontend)
+
+- Cache zgłoszeń, kategorii, „moich zgłoszeń” i komentarzy w SQLite
+- Banner informujący o braku sieci
+- Kolejka synchronizacji: głosowanie, cofanie głosu, dodawanie komentarza po powrocie online
+- Tworzenie, edycja i usuwanie zgłoszeń wymagają połączenia z siecią
 
 ### Profil i ustawienia
 
 - Motyw jasny / ciemny / systemowy
 - Kolor akcentu aplikacji
+- Powiadomienia push (włącz / wyłącz)
 - Interaktywny przewodnik po aplikacji (onboarding)
 - Ekran „O aplikacji”
-
-### Planowane
-
-- Komentarze pod zgłoszeniami (obecnie placeholder w UI)
 
 ## Stos technologiczny
 
@@ -67,9 +82,11 @@ Wersja: **0.2.0 (1)**
 | Backend / API | Firebase Data Connect (PostgreSQL) |
 | Uwierzytelnianie | Firebase Auth, Google Sign-In |
 | Pliki | Firebase Storage |
+| Powiadomienia | Firebase Cloud Messaging, Cloud Functions, `flutter_local_notifications` |
 | Mapa | Google Maps Flutter |
 | Lokalizacja | Geolocator |
 | Preferencje lokalne | SharedPreferences |
+| Cache offline | SQLite (`sqflite`), `connectivity_plus` |
 
 ## Wymagania
 
@@ -98,7 +115,7 @@ Pliki z danymi wrażliwymi nie są w repozytorium (patrz `.gitignore`). Trzeba j
 
 3. Pliki `android/app/google-services.json` i `lib/firebase_options.dart` są w `.gitignore` (nie commituj kluczy).
 
-4. W Firebase Console włącz **Authentication** (dostawca Google) oraz **Data Connect** / Storage według potrzeb projektu.
+4. W Firebase Console włącz **Authentication** (dostawca Google), **Data Connect**, **Storage**, **Cloud Messaging** oraz **Cloud Functions** według potrzeb projektu.
 
 ### CI (GitHub Actions)
 
@@ -153,7 +170,7 @@ flutter build apk --debug
 
 ## Testy
 
-Testy podzielone na jednostkowe i widgety:
+Testy jednostkowe i widgetów:
 
 ```bash
 flutter test
@@ -166,32 +183,55 @@ flutter test test/unit/
 flutter test test/widgets/
 ```
 
+Testy integracyjne (wymagają sekretów CI lub lokalnej konfiguracji Firebase):
+
+```bash
+flutter test integration_test/
+```
+
 Struktura:
 
 - `test/unit/` — logika pomocnicza (walidacja, mapowanie błędów)
 - `test/widgets/` — komponenty UI (mapa, formularze, ustawienia)
-- `test/helpers/` — wspólne fixture’y i `pumpWidget` do testów
+- `test/helpers/` — wspólne fixture'y i `pumpWidget` do testów
+- `integration_test/` — scenariusze end-to-end na urządzeniu
+
+## Dokumentacja
+
+| Dokument | Opis |
+|----------|------|
+| [`docs/frontend/README.md`](docs/frontend/README.md) | Architektura frontendu, nawigacja, ekrany, konwencje |
+| [`lib/services/README.md`](lib/services/README.md) | Referencja API warstwy serwisów (Data Connect, offline, FCM) |
+| [`docs/CI-SECRETS.md`](docs/CI-SECRETS.md) | Sekrety GitHub Actions |
+| [`docs/database.dbml`](docs/database.dbml) | Schemat bazy PostgreSQL (diagram) |
+| [`integration_test/README.md`](integration_test/README.md) | Testy integracyjne |
 
 ## Struktura projektu
 
 ```
 lib/
-├── app/                 # MaterialApp, motywy
-├── core/                # stałe, widgety wspólne, utils
+├── app/                    # MaterialApp, motywy, bootstrap Firebase
+├── core/                   # stałe, widgety wspólne, utils
+│   └── widgets/            # m.in. OfflineBanner
 ├── dataconnect_generated/  # SDK wygenerowane z Data Connect
 ├── features/
-│   ├── auth/            # logowanie, AuthGate
-│   ├── map/             # mapa i filtry
-│   ├── onboarding/      # przewodnik po aplikacji
-│   ├── reports/         # zgłoszenia (lista, formularz, szczegóły)
-│   ├── settings/        # profil, o aplikacji
-│   └── shell/           # nawigacja (dolny pasek, IndexedStack)
-├── services/            # auth, raporty, lokalizacja, storage
+│   ├── auth/               # logowanie, AuthGate
+│   ├── map/                # mapa i filtry
+│   ├── onboarding/         # przewodnik po aplikacji
+│   ├── reports/            # zgłoszenia (lista, formularz, szczegóły, komentarze)
+│   ├── settings/         # profil, powiadomienia, o aplikacji
+│   ├── shell/              # nawigacja (dolny pasek, IndexedStack)
+│   └── splash/             # ekran startowy podczas inicjalizacji
+├── services/               # auth, raporty, komentarze, storage, powiadomienia
+│   └── offline/            # SQLite, cache, sync, connectivity
 └── main.dart
 
-dataconnect/             # schema, queries, mutations (backend)
-test/                    # testy jednostkowe i widgetów
-android/                 # konfiguracja Android
+dataconnect/                # schema, queries, mutations (backend)
+functions/                  # Cloud Functions (np. push przy upvote)
+docs/                       # dokumentacja projektu
+test/                       # testy jednostkowe i widgetów
+integration_test/           # testy E2E
+android/                    # konfiguracja Android
 ```
 
 ## Zespół

@@ -1,7 +1,7 @@
 # Polityka Prywatności Aplikacji „City Issues”
 
-**Wersja:** 1.1  
-**Data ostatniej aktualizacji:** 13 czerwca 2026 r.  
+**Wersja:** 1.2  
+**Data ostatniej aktualizacji:** 15 czerwca 2026 r.  
 **Aplikacja:** City Issues (wersja 0.2.0)  
 **Platforma:** Android (aplikacja mobilna Flutter)
 
@@ -20,10 +20,10 @@ Administratorem danych osobowych w rozumieniu Rozporządzenia Parlamentu Europej
 
 Niniejsza Polityka Prywatności określa zasady zbierania, przetwarzania, przechowywania i zabezpieczania danych osobowych użytkowników aplikacji mobilnej **City Issues**.
 
-Architektura systemu opiera się na zarządzanych usługach chmurowych **Google Firebase** oraz relacyjnej bazie danych **PostgreSQL**, z którą komunikacja odbywa się za pośrednictwem technologii **Firebase SQL Connect**. Aplikacja nie korzysta z własnego, samodzielnie hostowanego serwera WWW; logika po stronie chmury obejmuje m.in.:
+Architektura systemu opiera się na zarządzanych usługach chmurowych **Google Firebase** oraz relacyjnej bazie danych **PostgreSQL**, z którą komunikacja odbywa się za pośrednictwem technologii **Firebase Data Connect**. Aplikacja nie korzysta z własnego, samodzielnie hostowanego serwera WWW; logika po stronie chmury obejmuje m.in.:
 
 * **Firebase Authentication** — uwierzytelnianie użytkowników,
-* **Firebase SQL Connect** — zapytania i mutacje GraphQL na PostgreSQL,
+* **Firebase Data Connect** — zapytania i mutacje GraphQL na PostgreSQL,
 * **Firebase Storage** — przechowywanie zdjęć,
 * **Firebase Cloud Functions** (region `europe-central2`) — wysyłka powiadomień push (FCM) po podbiciu zgłoszenia.
 
@@ -69,6 +69,8 @@ Aplikacja przetwarza współrzędne geograficzne wyłącznie w celach operacyjny
 
 **Ważne:** Współrzędne zgłoszeń trafiają do pól `Report.latitude` i `Report.longitude` i stają się **danymi publicznymi** (zapytanie `GetReports`, `@auth(level: PUBLIC)`). Aplikacja **nie śledzi** użytkownika w tle.
 
+Przy **otwartej aplikacji** lista zgłoszeń jest okresowo odświeżana z serwera (co ok. 30 s) w celu aktualizacji mapy — nie jest to śledzenie lokalizacji użytkownika.
+
 ### 3.4. Multimedia (Zdjęcia)
 
 `[Aparat / Galeria] ──(image_picker)──> [Kompresja: jakość 80%] ──> [Upload: Firebase Storage] ──> [Zapis URL w PostgreSQL]`
@@ -82,9 +84,9 @@ Aplikacja przetwarza współrzędne geograficzne wyłącznie w celach operacyjny
 
 Interakcje użytkownika powiązane są z jego UID:
 
-* Opis, kategoria, status i data zgłoszenia (`Report`).
-* Głosy wsparcia (`Upvote` — powiązanie UID użytkownika ze zgłoszeniem; identyfikatory autorów głosów widoczne w zapytaniach publicznych).
-* Treść komentarzy i data dodania (`Comment`).
+* Opis, kategoria, status i data zgłoszenia (`Report`). Na mapie publicznej (`GetReports`) **nie są wyświetlane** nazwa ani zdjęcie profilowe autora zgłoszenia — widoczne są m.in. współrzędne, opis, kategoria, status i zdjęcia.
+* Głosy wsparcia (`Upvote` — powiązanie UID użytkownika ze zgłoszeniem; **identyfikatory (UID) osób głosujących** widoczne w zapytaniach publicznych przy danym zgłoszeniu).
+* Treść komentarzy i data dodania (`Comment`). Przy komentarzach publicznie widoczne są także **nazwa wyświetlana (`username`) i zdjęcie profilowe (`photoUrl`)** autora (`GetReportComments`).
 
 ### 3.6. Powiadomienia push (FCM)
 
@@ -97,11 +99,24 @@ Po zalogowaniu aplikacja może poprosić o zgodę na powiadomienia (`POST_NOTIFI
 
 **Kiedy wysyłane są powiadomienia:** Gdy inny zalogowany użytkownik podbije zgłoszenie (`notifyUpvoteOnReport` w `functions/src/index.ts`). Powiadomienie trafia do **właściciela zgłoszenia** (nie do osoby podbijającej). Treść może zawierać: nazwę użytkownika podbijającego, kategorię lub fragment opisu zgłoszenia oraz identyfikator zgłoszenia (`reportId`). Przy podbiciu własnego zgłoszenia powiadomienie nie jest wysyłane.
 
-Token FCM synchronizowany jest przy starcie aplikacji, po logowaniu oraz przy odświeżeniu tokenu. Użytkownik może wyłączyć powiadomienia w ustawieniach systemu Android; token w bazie może pozostać do czasu kolejnej synchronizacji lub żądania usunięcia danych.
+**Powiadomienia lokalne (aplikacja otwarta):** Niezależnie od push FCM aplikacja może wyświetlać powiadomienia systemowe generowane na urządzeniu (`flutter_local_notifications`) — np. gdy przy odświeżeniu listy wykryje nowe podbicie własnego zgłoszenia. Nie wymaga to osobnej transmisji z serwera w momencie wyświetlenia.
+
+Token FCM synchronizowany jest przy starcie aplikacji, po logowaniu oraz przy odświeżeniu tokenu. Użytkownik może **wyłączyć powiadomienia push w Profilu** (przełącznik „Powiadomienia push”) — wtedy token FCM jest usuwany z urządzenia, a w bazie zapisywany jest pusty `fcmToken` (`disablePushRegistration`). Powiadomienia można też wyłączyć w ustawieniach systemu Android.
 
 ### 3.7. Dane konfiguracyjne (lokalne)
 
-W `SharedPreferences` (`lib/services/app_preferences.dart`) zapisywane są: tryb jasny/ciemny/systemowy, kolor akcentu, status ukończenia onboardingu. Dane te **nie są przesyłane** do chmury.
+W `SharedPreferences` (`lib/services/app_preferences.dart`) zapisywane są: tryb jasny/ciemny/systemowy, kolor akcentu, status ukończenia onboardingu, **preferencja włączenia powiadomień push** (`notifications_enabled`). Dane te **nie są przesyłane** do chmury.
+
+### 3.8. Tryb offline (lokalna baza SQLite)
+
+Aplikacja przechowuje na urządzeniu kopię wybranych danych oraz kolejkę operacji do wysłania po powrocie sieci (`lib/services/offline/`, baza `city_issues_offline.db`):
+
+| Kategoria danych | Cel | Miejsce docelowe |
+| :--- | :--- | :--- |
+| **Cache zgłoszeń, kategorii, moich zgłoszeń, komentarzy** | Wyświetlanie danych bez połączenia z internetem | Tabela `cache_entries` (JSON) |
+| **Oczekujące operacje** (głos, usunięcie głosu, dodanie komentarza) | Synchronizacja po przywróceniu sieci | Tabela `pending_operations` (typ + payload JSON) |
+
+Dane w cache mogą obejmować treści zgłoszeń i komentarzy wcześniej pobrane z serwera. Po ponownym połączeniu `OfflineSyncService` wysyła oczekujące operacje do PostgreSQL. Cache i kolejka są usuwane wraz z wyczyszczeniem danych aplikacji lub odinstalowaniem programu.
 
 ---
 
@@ -114,6 +129,7 @@ W `SharedPreferences` (`lib/services/app_preferences.dart`) zapisywane są: tryb
 | **Zdjęcia** | Dokumentacja wizualna zgłoszenia | **Art. 6 ust. 1 lit. a** — zgoda (aparat/galeria) |
 | **Komentarze, opisy, głosy** | Funkcjonowanie platformy zgłoszeń | **Art. 6 ust. 1 lit. b** — wykonanie usługi |
 | **Token FCM / powiadomienia push** | Informowanie o podbiciu zgłoszenia | **Art. 6 ust. 1 lit. a** — zgoda na powiadomienia |
+| **Cache offline (SQLite)** | Działanie aplikacji bez sieci i synchronizacja | **Art. 6 ust. 1 lit. b** — wykonanie usługi |
 | **Tokeny sesyjne** | Utrzymanie bezpiecznej sesji | **Art. 6 ust. 1 lit. b** — wykonanie usługi |
 
 ---
@@ -139,6 +155,7 @@ W `SharedPreferences` (`lib/services/app_preferences.dart`) zapisywane są: tryb
 * **Profil użytkownika i token FCM:** do żądania usunięcia lub likwidacji konta.
 * **Zgłoszenia, komentarze, głosy:** do usunięcia przez administratora lub likwidacji systemu (historia mapy zgłoszeń).
 * **Cache lokalny (SharedPreferences):** do wyczyszczenia danych aplikacji lub odinstalowania.
+* **Baza offline (SQLite):** do wyczyszczenia danych aplikacji lub odinstalowania.
 
 ---
 
@@ -147,20 +164,23 @@ W `SharedPreferences` (`lib/services/app_preferences.dart`) zapisywane są: tryb
 Dane nie są sprzedawane. Odbiorcy:
 
 1. **Google LLC / Google Cloud Platform** — Firebase Auth, Data Connect, Storage, Cloud Messaging, Cloud Functions (podmiot przetwarzający).
-2. **Google Maps Platform** — renderowanie mapy (w tym przekazywanie współrzędnych do pobrania kafelków).
-3. **Inni użytkownicy aplikacji** — w zakresie danych publicznych (zgłoszenia na mapie, komentarze, zdjęcia, identyfikatory w głosach).
+2. **Google LLC (Google Sign-In)** — uwierzytelnianie konta Google przy logowaniu (identyfikator, e-mail, nazwa, zdjęcie profilowe zgodnie z ustawieniami konta Google).
+3. **Google Maps Platform** — renderowanie mapy (w tym przekazywanie współrzędnych do pobrania kafelków).
+4. **Inni użytkownicy aplikacji** — w zakresie danych publicznych (zgłoszenia na mapie, komentarze wraz z nazwą i zdjęciem autora, zdjęcia zgłoszeń, identyfikatory w głosach).
 
 ---
 
 ## 7. Uprawnienia Użytkownika (RODO)
 
 * **Prawo dostępu (art. 15)** — wgląd w przetwarzane dane (kontakt e-mail, sekcja 1).
-* **Prawo do sprostowania (art. 16)** — dane profilu Google synchronizują się przy logowaniu (`upsertUser`); komentarze można edytować w aplikacji.
+* **Prawo do sprostowania (art. 16)** — dane profilu Google synchronizują się przy logowaniu (`upsertUser`); komentarze i własne zgłoszenia można edytować w aplikacji.
 * **Prawo do usunięcia (art. 17)** — patrz sekcja 8.3.
 * **Prawo do ograniczenia przetwarzania (art. 18)** i **przenoszenia danych (art. 20)**.
-* **Prawo do cofnięcia zgody (art. 7 ust. 3)** — w dowolnym momencie: wyłączenie GPS, aparatu lub powiadomień w ustawieniach Androida.
+* **Prawo do cofnięcia zgody (art. 7 ust. 3)** — w dowolnym momencie: wyłączenie GPS, aparatu lub powiadomień w ustawieniach Androida; wyłączenie powiadomień push w Profilu aplikacji.
 
-Skarga do **PUODO**, ul. Moniuszki 1A, 00-014 Warszawa.
+Skarga do **Prezesa Urzędu Ochrony Danych Osobowych (PUODO)**, ul. Moniuszki 1A, 00-014 Warszawa.
+
+Aplikacja **nie podejmuje zautomatyzowanych decyzji** w rozumieniu art. 22 RODO, w tym profilowania.
 
 ---
 
@@ -173,16 +193,26 @@ Z ekranu Profil/Ustawienia (`AuthService.signOut()`) kończy sesję na urządzen
 ### 8.2. Usuwanie i edycja treści przez użytkownika
 
 * **Komentarze:** użytkownik może **edytować i usuwać** własne komentarze (`CommentService.editComment`, `CommentService.deleteComment`).
-* **Zgłoszenia:** w wersji 0.2.0 **brak** przycisku w interfejsie do edycji lub usunięcia własnego zgłoszenia (funkcje backendowe istnieją, lecz nie są udostępnione w UI). W razie potrzeby usunięcia zgłoszenia — kontakt z Administratorem (sekcja 1).
+* **Zgłoszenia:** użytkownik może **edytować i usuwać** własne zgłoszenia z poziomu aplikacji (`EditReportScreen`, `MyReportsScreen`, `ReportDetailScreen`). Usunięcie zgłoszenia obejmuje powiązane zdjęcia, komentarze i głosy (zgodnie z komunikatem w dialogu potwierdzenia).
 
 ### 8.3. Trwałe usunięcie konta
 
-Pełna automatyzacja usuwania konta z poziomu aplikacji **nie została wdrożona** w wersji 0.2.0. Aby usunąć profil i powiązane dane, użytkownik wysyła żądanie na adres e-mail z sekcji 1, podając adres powiązany z kontem Google.
+Użytkownik może **samodzielnie usunąć konto** z ekranu Profil — przycisk „Usuń konto” (`AuthService.deleteAccount()`). Operacja jest nieodwracalna i obejmuje m.in.:
+
+* usunięcie profilu (`User`) oraz powiązanych zgłoszeń, komentarzy i głosów w PostgreSQL (mutacja `DeleteAccount`),
+* usunięcie plików zdjęć użytkownika z Firebase Storage (`reports/{uid}/`),
+* usunięcie konta uwierzytelniającego w Firebase Auth.
+
+Ze względów bezpieczeństwa Firebase może wymagać **ponownego logowania** tuż przed usunięciem (`requires-recent-login`) — w takim przypadku należy się wylogować, zalogować ponownie i powtórzyć operację.
+
+W razie problemów technicznych z usunięciem konta z aplikacji użytkownik może zgłosić żądanie na adres e-mail z sekcji 1, podając adres powiązany z kontem Google.
 
 ---
 
 ## 9. Zmiany Polityki
 
 Administrator może aktualizować niniejszą politykę. Data i wersja na górze dokumentu wskazują ostatnią aktualizację. Przy istotnych zmianach użytkownicy zostaną poinformowani w aplikacji lub przy kolejnym logowaniu.
+
+Aktualna treść polityki jest publikowana w repozytorium projektu (`docs/privacy_policy.md`) oraz — po wdrożeniu — dostępna z poziomu aplikacji (ekran „O aplikacji” / Profil).
 
 ---

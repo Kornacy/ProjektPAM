@@ -1,16 +1,16 @@
 # Basic Usage
 
 ```dart
+DefaultConnector.instance.GetUpvoteNotificationContext(getUpvoteNotificationContextVariables).execute();
+DefaultConnector.instance.GetReports().execute();
+DefaultConnector.instance.GetActiveReports().execute();
+DefaultConnector.instance.GetMyReports().execute();
+DefaultConnector.instance.GetCategories().execute();
+DefaultConnector.instance.GetReportComments(getReportCommentsVariables).execute();
 DefaultConnector.instance.UpsertUser(upsertUserVariables).execute();
+DefaultConnector.instance.UpdateFcmToken(updateFcmTokenVariables).execute();
 DefaultConnector.instance.CreateReport(createReportVariables).execute();
 DefaultConnector.instance.AddPhoto(addPhotoVariables).execute();
-DefaultConnector.instance.RemoveReportPhoto(removeReportPhotoVariables).execute();
-DefaultConnector.instance.UpvoteReport(upvoteReportVariables).execute();
-DefaultConnector.instance.RemoveUpvote(removeUpvoteVariables).execute();
-DefaultConnector.instance.AddComment(addCommentVariables).execute();
-DefaultConnector.instance.EditComment(editCommentVariables).execute();
-DefaultConnector.instance.DeleteComment(deleteCommentVariables).execute();
-DefaultConnector.instance.EditReport(editReportVariables).execute();
 
 ```
 

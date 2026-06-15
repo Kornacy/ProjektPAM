@@ -8,6 +8,7 @@ type User @table {
   username: String! @col(dataType: "varchar(50)")
   photoUrl: String! @col(dataType: "varchar(2048)")
   role: String! @default(value: "CITIZEN") @col(dataType: "varchar(20)")
+  fcmToken: String @col(dataType: "varchar(512)")
 }
 
 type Category @table {

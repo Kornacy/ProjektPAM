@@ -50,13 +50,13 @@ class MapScreenState extends State<MapScreen> {
     _init();
   }
 
-  Future<void> refreshReports({bool forceRefresh = false}) =>
-      _loadReports(forceRefresh: forceRefresh);
+  Future<void> refreshReports({bool forceRefresh = false, bool silent = false}) =>
+      _loadReports(forceRefresh: forceRefresh, silent: silent);
 
   Future<void> _init() async {
     await _initLocation();
     await _loadCategories();
-    await _loadReports();
+    await _loadReports(forceRefresh: true);
   }
 
   Future<void> _loadCategories() async {
@@ -83,7 +83,7 @@ class MapScreenState extends State<MapScreen> {
     await _fetchCurrentLocation();
   }
 
-  Future<void> _loadReports({bool forceRefresh = false}) async {
+  Future<void> _loadReports({bool forceRefresh = false, bool silent = false}) async {
     try {
       final reports =
           await ReportService.instance.getReports(forceRefresh: forceRefresh);
@@ -94,9 +94,11 @@ class MapScreenState extends State<MapScreen> {
       });
       _applyFilters();
     } catch (e) {
-      if (mounted) setState(() => _error = UserFacingError.loadReports(e));
+      if (mounted && !silent) {
+        setState(() => _error = UserFacingError.loadReports(e));
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted && !silent) setState(() => _isLoading = false);
     }
   }
 

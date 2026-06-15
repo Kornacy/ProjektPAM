@@ -33,24 +33,28 @@ class MyReportsScreenState extends State<MyReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _load(forceRefresh: true);
   }
 
-  Future<void> refresh() => _load(forceRefresh: true);
+  Future<void> refresh({bool silent = false}) => _load(forceRefresh: true, silent: silent);
 
-  Future<void> _load({bool forceRefresh = false}) async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _load({bool forceRefresh = false, bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final reports =
           await ReportService.instance.getMyReports(forceRefresh: forceRefresh);
       if (mounted) setState(() => _reports = reports);
     } catch (e) {
-      if (mounted) setState(() => _error = UserFacingError.loadMyReports(e));
+      if (mounted && !silent) {
+        setState(() => _error = UserFacingError.loadMyReports(e));
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted && !silent) setState(() => _isLoading = false);
     }
   }
 
@@ -139,10 +143,24 @@ class MyReportsScreenState extends State<MyReportsScreen> {
                   )
                 : _placeholderLeading(report),
             title: Text(report.category.name),
-            subtitle: Text(
-              report.description ?? 'Brak opisu',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  report.description ?? 'Brak opisu',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _upvoteLabel(ReportUtils.upvoteCount(report.upvotes_on_report)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -197,5 +215,16 @@ class MyReportsScreenState extends State<MyReportsScreen> {
       backgroundColor: ReportUtils.parsePinColor(report.category.pinColor).withValues(alpha: 0.2),
       child: Icon(ReportUtils.categoryIcon(report.category.iconName)),
     );
+  }
+
+  String _upvoteLabel(int count) {
+    if (count == 0) return 'Brak poparcia';
+    if (count == 1) return '1 osoba wspiera';
+    final lastDigit = count % 10;
+    final lastTwo = count % 100;
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14)) {
+      return '$count osoby wspierają';
+    }
+    return '$count osób wspiera';
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -12,6 +14,7 @@ import 'package:city_issues/features/reports/screens/report_detail_screen.dart';
 import 'package:city_issues/features/settings/screens/settings_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
+import 'package:city_issues/services/notification_service.dart';
 import 'package:city_issues/services/offline/connectivity_service.dart';
 import 'package:city_issues/services/offline/offline_sync_service.dart';
 import 'package:city_issues/services/report_service.dart';
@@ -23,7 +26,7 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
   final _navBarKey = GlobalKey();
   final _mapFiltersKey = GlobalKey();
@@ -42,6 +45,7 @@ class _MainShellState extends State<MainShell> {
   bool _tourVisible = false;
   bool _tourReplay = false;
   int _tourStep = 0;
+  Timer? _reportsPollTimer;
   late final List<AppTourStep> _tourSteps = AppTourSteps.build(
     mapFiltersKey: _mapFiltersKey,
     mapFabKey: _mapFabKey,
@@ -57,6 +61,14 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    NotificationService.instance.setOnReportOpened(_openReportFromNotification);
+    NotificationService.instance.setOnReportsChanged(_refreshReportsFromServer);
+    NotificationService.instance.syncToken();
+    _reportsPollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _refreshReportsFromServer(),
+    );
     ConnectivityService.instance.addListener(_onOfflineUiChanged);
     OfflineSyncService.instance.addListener(_onOfflineUiChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowOnboarding());
@@ -64,16 +76,57 @@ class _MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _reportsPollTimer?.cancel();
+    NotificationService.instance.setOnReportOpened(null);
+    NotificationService.instance.setOnReportsChanged(null);
     ConnectivityService.instance.removeListener(_onOfflineUiChanged);
     OfflineSyncService.instance.removeListener(_onOfflineUiChanged);
     _settingsScrollController.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshReportsFromServer();
+      NotificationService.instance.syncToken();
+    }
+  }
+
+  Future<void> _refreshReportsFromServer() async {
+    await Future.wait([
+      _mapKey.currentState?.refreshReports(forceRefresh: true, silent: true) ??
+          Future.value(),
+      _myReportsKey.currentState?.refresh(silent: true) ?? Future.value(),
+    ]);
+  }
+
+  Future<void> _openReportFromNotification(String reportId) async {
+    if (!mounted) return;
+
+    _shellNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    setState(() => _stackIndex = 0);
+
+    final report = await ReportService.instance.findReportById(reportId);
+    if (!mounted) return;
+
+    if (report == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nie udało się otworzyć zgłoszenia z powiadomienia.'),
+        ),
+      );
+      return;
+    }
+
+    openReportDetail(report);
+  }
+
   void _onOfflineUiChanged() {
     if (!ConnectivityService.instance.isOnline) return;
     OfflineSyncService.instance.syncPendingOperations().then((_) {
-      if (mounted) _refreshReportData();
+      if (mounted) _refreshReportsFromServer();
     });
   }
 
@@ -159,13 +212,15 @@ class _MainShellState extends State<MainShell> {
     bool? canManage,
   }) async {
     final manage = await _resolveCanManage(report.id, canManage: canManage);
+    final fresh =
+        await ReportService.instance.findReportById(report.id) ?? report;
     if (!mounted) return;
 
     _shellNavigatorKey.currentState?.push(
       MaterialPageRoute(
         settings: const RouteSettings(name: '/report-detail'),
         builder: (_) => ReportDetailScreen(
-          report: report,
+          report: fresh,
           canManage: manage,
           onBack: () => _shellNavigatorKey.currentState?.pop(),
           onEdit: manage ? () => _openEditReport(report) : null,
@@ -338,6 +393,9 @@ class _MainShellState extends State<MainShell> {
                           _stackIndex = index == 3 ? 2 : index;
                           if (_stackIndex != 3) _createInitialLocation = null;
                         });
+                        if (index == 0 || index == 1) {
+                          _refreshReportsFromServer();
+                        }
                       },
                       destinations: const [
                         NavigationDestination(

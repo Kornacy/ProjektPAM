@@ -21,6 +21,60 @@ DefaultConnector.instance.dataConnect.useDataConnectEmulator(host, port);
 You can also call queries and mutations by using the connector class.
 ## Queries
 
+### GetUpvoteNotificationContext
+#### Required Arguments
+```dart
+String reportId = ...;
+String upvoterId = ...;
+DefaultConnector.instance.getUpvoteNotificationContext(
+  reportId: reportId,
+  upvoterId: upvoterId,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `QueryResult<GetUpvoteNotificationContextData, GetUpvoteNotificationContextVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+/// Result of a query request. Created to hold extra variables in the future.
+class QueryResult<Data, Variables> extends OperationResult<Data, Variables> {
+  QueryResult(super.dataConnect, super.data, super.ref);
+}
+
+final result = await DefaultConnector.instance.getUpvoteNotificationContext(
+  reportId: reportId,
+  upvoterId: upvoterId,
+);
+GetUpvoteNotificationContextData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String reportId = ...;
+String upvoterId = ...;
+
+final ref = DefaultConnector.instance.getUpvoteNotificationContext(
+  reportId: reportId,
+  upvoterId: upvoterId,
+).ref();
+ref.execute();
+
+ref.subscribe(...);
+```
+
+
 ### GetReports
 #### Required Arguments
 ```dart
@@ -295,6 +349,48 @@ String email = ...;
 
 final ref = DefaultConnector.instance.upsertUser(
   email: email,
+).ref();
+ref.execute();
+```
+
+
+### UpdateFcmToken
+#### Required Arguments
+```dart
+String token = ...;
+DefaultConnector.instance.updateFcmToken(
+  token: token,
+).execute();
+```
+
+
+
+#### Return Type
+`execute()` returns a `OperationResult<UpdateFcmTokenData, UpdateFcmTokenVariables>`
+```dart
+/// Result of an Operation Request (query/mutation).
+class OperationResult<Data, Variables> {
+  OperationResult(this.dataConnect, this.data, this.ref);
+  Data data;
+  OperationRef<Data, Variables> ref;
+  FirebaseDataConnect dataConnect;
+}
+
+final result = await DefaultConnector.instance.updateFcmToken(
+  token: token,
+);
+UpdateFcmTokenData data = result.data;
+final ref = result.ref;
+```
+
+#### Getting the Ref
+Each builder returns an `execute` function, which is a helper function that creates a `Ref` object, and executes the underlying operation.
+An example of how to use the `Ref` object is shown below:
+```dart
+String token = ...;
+
+final ref = DefaultConnector.instance.updateFcmToken(
+  token: token,
 ).ref();
 ref.execute();
 ```

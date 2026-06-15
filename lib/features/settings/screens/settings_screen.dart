@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:city_issues/core/utils/scroll_padding.dart';
 import 'package:city_issues/features/settings/screens/about_screen.dart';
+import 'package:city_issues/features/settings/widgets/notification_settings_tile.dart';
 import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
 
@@ -70,6 +71,12 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+              Text('Powiadomienia', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              const Card(
+                child: NotificationSettingsTile(),
               ),
               const SizedBox(height: 16),
               Text('Wygląd', style: Theme.of(context).textTheme.titleMedium),

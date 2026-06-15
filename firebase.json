@@ -13,6 +13,10 @@
       "host": "0.0.0.0",
       "port": 9399
     },
+    "functions": {
+      "host": "0.0.0.0",
+      "port": 5001
+    },
     "ui": {
       "enabled": true,
       "port": 4000
@@ -25,6 +29,20 @@
   "dataconnect": {
     "source": "dataconnect"
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+    }
+  ],
   "flutter": {
     "platforms": {
       "android": {

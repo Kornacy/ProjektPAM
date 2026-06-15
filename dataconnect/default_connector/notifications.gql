@@ -1,0 +1,18 @@
+# Tylko Admin SDK (Cloud Functions) — klient nie ma dostępu (@auth NO_ACCESS).
+query GetUpvoteNotificationContext($reportId: UUID!, $upvoterId: String!)
+@auth(level: NO_ACCESS) {
+  reports(where: { id: { eq: $reportId } }, limit: 1) {
+    id
+    description
+    user {
+      id
+      fcmToken
+    }
+    category {
+      name
+    }
+  }
+  upvoter: users(where: { id: { eq: $upvoterId } }, limit: 1) {
+    username
+  }
+}

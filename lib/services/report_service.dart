@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_issues/core/utils/report_utils.dart';
 import 'package:city_issues/dataconnect_generated/default.dart';
 import 'package:city_issues/services/auth_service.dart';
+import 'package:city_issues/services/notification_service.dart';
 import 'package:city_issues/services/location_service.dart';
 import 'package:city_issues/services/offline/connectivity_service.dart';
 import 'package:city_issues/services/offline/offline_cache_store.dart';
@@ -28,10 +29,14 @@ class ReportService {
     OfflineCacheStore? cacheStore,
     ConnectivityService? connectivity,
     OfflineSyncService? offlineSync,
+    Future<void> Function(String reportId)? onUpvoteNotify,
   })  : _authService = authService ?? AuthService.instance,
         _cacheStore = cacheStore ?? OfflineCacheStore.instance,
         _connectivity = connectivity ?? ConnectivityService.instance,
-        _offlineSync = offlineSync ?? OfflineSyncService.instance;
+        _offlineSync = offlineSync ?? OfflineSyncService.instance,
+        _onUpvoteNotify = onUpvoteNotify ??
+            ((reportId) =>
+                NotificationService.instance.notifyUpvoteOnReport(reportId));
 
   static final ReportService instance = ReportService._();
 
@@ -41,20 +46,27 @@ class ReportService {
     OfflineCacheStore? cacheStore,
     ConnectivityService? connectivity,
     OfflineSyncService? offlineSync,
+    Future<void> Function(String reportId)? onUpvoteNotify,
   }) =>
       ReportService._(
         authService: authService,
         cacheStore: cacheStore,
         connectivity: connectivity,
         offlineSync: offlineSync,
+        onUpvoteNotify: onUpvoteNotify,
       );
 
   final AuthService _authService;
   final OfflineCacheStore _cacheStore;
   final ConnectivityService _connectivity;
   final OfflineSyncService _offlineSync;
+  final Future<void> Function(String reportId) _onUpvoteNotify;
 
   final Map<String, UpvoteDisplayState> _upvoteCache = {};
+  final Map<String, int> _lastOwnerUpvoteCounts = {};
+  final Map<String, bool> _lastOwnerSelfUpvoted = {};
+  final Set<String> _selfUpvoteNotifySuppress = {};
+  bool _ownerUpvoteBaselineReady = false;
 
   UpvoteDisplayState? upvoteStateFor(String reportId) =>
       _upvoteCache[reportId];
@@ -80,6 +92,37 @@ class ReportService {
           count: serverCount,
           hasUpvoted: serverHasUpvoted,
         );
+  }
+
+  void _notifyOwnerUpvoteIncreases(List<GetReportsReports> reports) {
+    final userId = _authService.currentUser?.uid;
+
+    for (final report in reports) {
+      final count = ReportUtils.upvoteCount(report.upvotes_on_report);
+      final previous = _lastOwnerUpvoteCounts[report.id];
+      final selfUpvoted = userId != null &&
+          ReportUtils.userHasUpvoted(report.upvotes_on_report, userId);
+      final wasSelfUpvoted = _lastOwnerSelfUpvoted[report.id] ?? false;
+
+      if (_ownerUpvoteBaselineReady && previous != null && count > previous) {
+        final onlySelfUpvote =
+            count == previous + 1 && selfUpvoted && !wasSelfUpvoted;
+        final suppressedSelfAction = _selfUpvoteNotifySuppress.remove(report.id);
+
+        if (!onlySelfUpvote && !suppressedSelfAction) {
+          NotificationService.instance.showUpvoteReceived(
+            reportId: report.id,
+            categoryName: report.category.name,
+            description: report.description,
+            newCount: count,
+          );
+        }
+      }
+
+      _lastOwnerUpvoteCounts[report.id] = count;
+      _lastOwnerSelfUpvoted[report.id] = selfUpvoted;
+    }
+    _ownerUpvoteBaselineReady = true;
   }
 
   void _reconcileUpvoteCache(List<GetReportsReports> reports) {
@@ -178,6 +221,19 @@ class ReportService {
     return reports;
   }
 
+  Future<GetReportsReports?> findReportById(
+    String reportId, {
+    bool forceRefresh = true,
+  }) async {
+    final reports = await getReports(forceRefresh: forceRefresh);
+    for (final report in reports) {
+      if (report.id == reportId) {
+        return report;
+      }
+    }
+    return null;
+  }
+
   Future<List<GetCategoriesCategories>> getCategories() async {
     return _fetchWithOfflineFallback(
       fetch: () async {
@@ -206,6 +262,13 @@ class ReportService {
       return;
     }
     await DefaultConnector.instance.upvoteReport(reportId: reportId).execute();
+    _selfUpvoteNotifySuppress.add(reportId);
+    if (_lastOwnerUpvoteCounts.containsKey(reportId)) {
+      _lastOwnerUpvoteCounts[reportId] =
+          (_lastOwnerUpvoteCounts[reportId] ?? 0) + 1;
+      _lastOwnerSelfUpvoted[reportId] = true;
+    }
+    await _onUpvoteNotify(reportId);
   }
 
   Future<void> removeUpvote(String reportId) async {
@@ -218,6 +281,11 @@ class ReportService {
       return;
     }
     await DefaultConnector.instance.removeUpvote(reportId: reportId).execute();
+    if (_lastOwnerUpvoteCounts.containsKey(reportId)) {
+      final next = (_lastOwnerUpvoteCounts[reportId] ?? 1) - 1;
+      _lastOwnerUpvoteCounts[reportId] = next < 0 ? 0 : next;
+      _lastOwnerSelfUpvoted[reportId] = false;
+    }
   }
 
   List<GetReportsReports> _mapMyReports(List<GetMyReportsReports> reports) {
@@ -276,6 +344,7 @@ class ReportService {
       loadCache: () => _cacheStore.loadMyReports(userId),
       saveCache: (data) => _cacheStore.saveMyReports(userId, data),
     );
+    _notifyOwnerUpvoteIncreases(reports);
     _reconcileUpvoteCache(reports);
     return reports;
   }

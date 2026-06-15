@@ -5,6 +5,8 @@ import 'package:city_issues/features/auth/auth_gate.dart';
 import 'package:city_issues/features/splash/app_splash_screen.dart';
 import 'package:city_issues/services/app_preferences.dart';
 import 'package:city_issues/services/auth_service.dart';
+import 'package:city_issues/services/offline/connectivity_service.dart';
+import 'package:city_issues/services/offline/local_database.dart';
 
 class CityIssuesApp extends StatefulWidget {
   const CityIssuesApp({super.key});
@@ -30,6 +32,8 @@ class _CityIssuesAppState extends State<CityIssuesApp> {
       await AuthService.instance.initialize();
       await AuthService.instance.waitForAuthReady();
       await AppPreferences.instance.load();
+      await LocalDatabase.instance.initialize();
+      await ConnectivityService.instance.initialize();
     } catch (e) {
       _initError = e;
     }

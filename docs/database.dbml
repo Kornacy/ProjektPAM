@@ -1,0 +1,62 @@
+
+Table users {
+  id varchar(50) [primary key, note: 'UID z Firebase Auth']
+  email varchar(50) [not null]
+  username varchar(50) [not null]
+  photo_url varchar(2048) [not null]
+  role varchar(20) [not null, default: 'CITIZEN', note: 'CITIZEN, OFFICIAL']
+  fcm_token varchar(512) [note: 'Token FCM do powiadomień push; opcjonalny']
+}
+
+Table categories {
+  id varchar(50) [primary key, note: 'np. DROGI, OSWIETLENIE, SMIECI, INNE']
+  name varchar [not null]
+  icon_name varchar [not null, note: 'np. road, lightbulb, delete, help']
+  pin_color varchar [not null, note: 'Kolor hex markera na mapie, np. #FF0000']
+}
+
+Table reports {
+  id uuid [primary key, note: 'Generowany przez uuidV4()']
+  user_id varchar(50) [not null]
+  category_id varchar(50) [not null]
+  description text [note: 'Opcjonalny opis problemu']
+  latitude float [not null, note: 'Szerokość geograficzna']
+  longitude float [not null, note: 'Długość geograficzna']
+  status varchar(50) [not null, default: 'NOWE', note: 'NOWE, W_TRAKCIE, NAPRAWIONE, ODRZCONE, ANULOWANE, ZAKONCZONE']
+  created_at timestamp [not null, default: `now()`, note: 'Czas utworzenia (request.time)']
+}
+
+Table report_photos {
+  id uuid [primary key]
+  report_id uuid [not null]
+  image_url varchar(2048) [not null, note: 'URL zdjęcia w Firebase Storage (reports/{uid}/...)']
+}
+
+Table upvotes {
+  id uuid [primary key]
+  report_id uuid [not null]
+  user_id varchar(50) [not null]
+
+  indexes {
+    (report_id, user_id) [unique, note: 'Jeden głos użytkownika na zgłoszenie']
+  }
+}
+
+Table comments {
+  id uuid [primary key]
+  report_id uuid [not null]
+  user_id varchar(50) [not null]
+  content varchar(1000) [not null]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Ref: reports.user_id > users.id
+Ref: reports.category_id > categories.id
+
+Ref: report_photos.report_id > reports.id
+
+Ref: upvotes.report_id > reports.id
+Ref: upvotes.user_id > users.id
+
+Ref: comments.report_id > reports.id
+Ref: comments.user_id > users.id
